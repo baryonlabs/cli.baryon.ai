@@ -3,11 +3,10 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Baryon CLI — AI 코딩·학습 에이전트 · 한 줄 설치</title>
-<meta name="description" content="npm 한 줄 설치로 시작하는 Baryon AI 코딩·학습 에이전트. baryon.ai API 기본 연결, 상용·로컬 모델 전환, 세션·서브에이전트·문서 생성까지. 교육기관 납품용." />
-<meta property="og:title" content="Baryon CLI — AI 코딩·학습 에이전트" />
-<meta property="og:description" content="npm install -g @baryonlabs/cli · baryon.ai API 기본 연결 · 한 줄 설치" />
-<meta property="og:type" content="website" />
+<title>Baryon CLI — 문서 · AI 코딩·학습 에이전트</title>
+<meta name="description" content="Baryon CLI 공식 문서. 설치, 인증(키), 명령어 레퍼런스, 설정, 모델·프로바이더, 모드, 오프라인 구동, 트러블슈팅. npm 한 줄 설치, baryon.ai API 기본 연결." />
+<meta property="og:title" content="Baryon CLI 문서" />
+<meta property="og:description" content="npm install -g @baryonlabs/cli · 설치·인증·명령어·설정 전체 가이드" />
 <meta property="og:url" content="https://cli.baryon.ai" />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='9' r='4' fill='%23c6f24e'/%3E%3Ccircle cx='9' cy='22' r='4' fill='%2356e0c8'/%3E%3Ccircle cx='23' cy='22' r='4' fill='%23c6f24e'/%3E%3C/svg%3E" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -15,494 +14,418 @@
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=IBM+Plex+Sans+KR:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
 <style>
   :root{
-    --bg:#080b0c;
-    --bg-soft:#0e1314;
-    --panel:#121819;
-    --panel-2:#171f20;
-    --ink:#eef4f1;
-    --ink-soft:#9fb2ab;
-    --ink-dim:#67807a;
-    --line:#23302e;
-    --lime:#c6f24e;
-    --teal:#56e0c8;
-    --rose:#ff8a6b;
-    --display:"Bricolage Grotesque",sans-serif;
-    --body:"IBM Plex Sans KR",sans-serif;
+    --bg:#080b0c; --bg-soft:#0e1314; --panel:#121819; --panel-2:#171f20;
+    --ink:#eef4f1; --ink-soft:#9fb2ab; --ink-dim:#67807a; --line:#23302e;
+    --lime:#c6f24e; --teal:#56e0c8; --rose:#ff8a6b;
+    --display:"Bricolage Grotesque",sans-serif; --body:"IBM Plex Sans KR",sans-serif;
     --mono:"JetBrains Mono",ui-monospace,monospace;
+    --sidebar:260px;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html{scroll-behavior:smooth}
-  body{
-    background:var(--bg);
-    color:var(--ink);
-    font-family:var(--body);
-    font-weight:400;
-    line-height:1.65;
-    -webkit-font-smoothing:antialiased;
-    overflow-x:hidden;
-  }
-  /* atmospheric background */
-  .bg-fx{position:fixed;inset:0;z-index:-2;pointer-events:none}
-  .bg-fx::before{
-    content:"";position:absolute;inset:0;
-    background:
-      radial-gradient(900px 600px at 78% -8%, rgba(198,242,78,.10), transparent 60%),
-      radial-gradient(800px 700px at 8% 12%, rgba(86,224,200,.08), transparent 55%),
-      radial-gradient(700px 900px at 50% 120%, rgba(86,224,200,.06), transparent 60%);
-  }
-  .grid-fx{position:fixed;inset:0;z-index:-2;pointer-events:none;opacity:.5;
-    background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);
-    background-size:64px 64px;
-    -webkit-mask-image:radial-gradient(circle at 50% 30%, #000 0%, transparent 78%);
-            mask-image:radial-gradient(circle at 50% 30%, #000 0%, transparent 78%);
-  }
-  .grain{position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.04;mix-blend-mode:overlay;
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  }
-
-  .wrap{max-width:1120px;margin:0 auto;padding:0 24px}
+  body{background:var(--bg);color:var(--ink);font-family:var(--body);font-weight:400;line-height:1.7;-webkit-font-smoothing:antialiased}
   a{color:inherit;text-decoration:none}
+  code,kbd{font-family:var(--mono)}
 
-  /* nav */
-  nav{position:sticky;top:0;z-index:50;backdrop-filter:blur(14px);
-    background:rgba(8,11,12,.72);border-bottom:1px solid var(--line)}
-  .nav-in{display:flex;align-items:center;justify-content:space-between;height:64px}
-  .brand{display:flex;align-items:center;gap:11px;font-family:var(--display);font-weight:800;letter-spacing:-.02em;font-size:18px}
-  .logo{width:26px;height:26px;flex:none}
-  .nav-links{display:flex;align-items:center;gap:26px;font-size:14px;color:var(--ink-soft)}
-  .nav-links a{transition:color .2s}
-  .nav-links a:hover{color:var(--lime)}
-  .nav-cta{font-family:var(--mono);font-size:13px;color:var(--bg);background:var(--lime);
-    padding:9px 15px;border-radius:8px;font-weight:700;transition:transform .15s,box-shadow .2s}
-  .nav-cta:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(198,242,78,.28)}
-  @media(max-width:760px){.nav-links{display:none}}
+  .bg-fx{position:fixed;inset:0;z-index:-2;pointer-events:none}
+  .bg-fx::before{content:"";position:absolute;inset:0;
+    background:radial-gradient(900px 600px at 82% -10%,rgba(198,242,78,.08),transparent 60%),radial-gradient(700px 700px at 0% 8%,rgba(86,224,200,.06),transparent 55%)}
+  .grain{position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.035;mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
 
-  /* hero */
-  header.hero{position:relative;padding:96px 0 80px}
-  .eyebrow{display:inline-flex;align-items:center;gap:9px;font-family:var(--mono);font-size:12.5px;
-    letter-spacing:.06em;text-transform:uppercase;color:var(--teal);
-    border:1px solid var(--line);background:var(--panel);padding:7px 13px;border-radius:999px;margin-bottom:26px}
-  .eyebrow .dot{width:7px;height:7px;border-radius:50%;background:var(--lime);box-shadow:0 0 0 4px rgba(198,242,78,.16)}
-  h1{font-family:var(--display);font-weight:800;letter-spacing:-.035em;line-height:.98;
-    font-size:clamp(40px,7.4vw,82px);max-width:14ch}
+  /* top nav */
+  nav{position:sticky;top:0;z-index:50;height:60px;backdrop-filter:blur(14px);
+    background:rgba(8,11,12,.8);border-bottom:1px solid var(--line)}
+  .nav-in{max-width:1280px;margin:0 auto;padding:0 22px;height:100%;display:flex;align-items:center;justify-content:space-between;gap:16px}
+  .brand{display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:800;letter-spacing:-.02em;font-size:17px}
+  .logo{width:24px;height:24px;flex:none}
+  .nav-right{display:flex;align-items:center;gap:18px;font-size:13.5px;color:var(--ink-soft)}
+  .nav-right a:hover{color:var(--lime)}
+  .nav-cta{font-family:var(--mono);font-size:12.5px;color:var(--bg);background:var(--lime);padding:8px 13px;border-radius:7px;font-weight:700}
+  .ver{font-family:var(--mono);font-size:11px;color:var(--teal);border:1px solid var(--line);padding:3px 8px;border-radius:999px}
+  #menuBtn{display:none;background:none;border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:6px 10px;font-size:18px;cursor:pointer}
+
+  /* layout */
+  .shell{max-width:1280px;margin:0 auto;padding:0 22px;display:grid;grid-template-columns:var(--sidebar) 1fr;gap:44px;align-items:start}
+  aside{position:sticky;top:60px;height:calc(100vh - 60px);overflow-y:auto;padding:30px 0 60px;border-right:1px solid var(--line)}
+  aside h6{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-dim);margin:22px 0 9px}
+  aside h6:first-child{margin-top:0}
+  aside a{display:block;font-size:14px;color:var(--ink-soft);padding:5px 12px;border-left:2px solid transparent;transition:.15s}
+  aside a:hover{color:var(--ink)}
+  aside a.active{color:var(--lime);border-left-color:var(--lime);background:rgba(198,242,78,.04)}
+
+  main{min-width:0;padding:38px 0 100px}
+  section{scroll-margin-top:78px;margin-bottom:64px}
+  .hero-doc{margin-bottom:50px}
+  .eyebrow{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--teal);border:1px solid var(--line);background:var(--panel);padding:6px 12px;border-radius:999px;margin-bottom:20px}
+  .eyebrow .dot{width:7px;height:7px;border-radius:50%;background:var(--lime);box-shadow:0 0 0 4px rgba(198,242,78,.15)}
+  h1{font-family:var(--display);font-weight:800;letter-spacing:-.03em;line-height:1.02;font-size:clamp(34px,5.2vw,56px)}
   h1 .grad{background:linear-gradient(96deg,var(--lime),var(--teal));-webkit-background-clip:text;background-clip:text;color:transparent}
-  .lede{margin-top:26px;font-size:clamp(16px,2vw,20px);color:var(--ink-soft);max-width:54ch;font-weight:300}
+  .lede{margin-top:18px;font-size:18px;color:var(--ink-soft);font-weight:300;max-width:60ch}
   .lede b{color:var(--ink);font-weight:600}
 
-  .install{margin-top:38px;max-width:600px}
-  .term{background:linear-gradient(180deg,var(--panel),var(--bg-soft));border:1px solid var(--line);
-    border-radius:14px;overflow:hidden;box-shadow:0 30px 80px -40px rgba(0,0,0,.9)}
-  .term-bar{display:flex;align-items:center;gap:8px;padding:12px 15px;border-bottom:1px solid var(--line);background:rgba(255,255,255,.015)}
-  .term-bar i{width:11px;height:11px;border-radius:50%;display:block}
-  .term-bar i:nth-child(1){background:#ff5f57}.term-bar i:nth-child(2){background:#febc2e}.term-bar i:nth-child(3){background:#28c840}
-  .term-bar span{margin-left:8px;font-family:var(--mono);font-size:12px;color:var(--ink-dim)}
-  .term-body{padding:18px 18px 20px;font-family:var(--mono);font-size:14.5px;display:flex;flex-direction:column;gap:10px}
-  .cmd{display:flex;align-items:center;gap:11px}
-  .cmd .pr{color:var(--teal);user-select:none}
-  .cmd code{color:var(--ink)}
-  .cmd code b{color:var(--lime);font-weight:700}
-  .copy{margin-left:auto;background:transparent;border:1px solid var(--line);color:var(--ink-soft);
-    font-family:var(--mono);font-size:11px;padding:5px 10px;border-radius:7px;cursor:pointer;transition:.15s;flex:none}
-  .copy:hover{border-color:var(--lime);color:var(--lime)}
-  .copy.ok{border-color:var(--teal);color:var(--teal)}
-  .out{color:var(--ink-dim);padding-left:0}
-  .out .ok{color:var(--teal)}
+  h2{font-family:var(--display);font-weight:800;letter-spacing:-.02em;font-size:30px;margin-bottom:8px;padding-top:6px}
+  h2 .hash{color:var(--ink-dim);font-weight:400;margin-right:8px;font-size:22px}
+  h3{font-family:var(--display);font-weight:700;font-size:20px;margin:30px 0 8px;letter-spacing:-.01em}
+  .sub{color:var(--ink-soft);font-size:16px;font-weight:300;margin-bottom:22px;max-width:64ch}
+  p{margin:12px 0;color:var(--ink-soft);font-weight:300}
+  p b,li b{color:var(--ink);font-weight:600}
+  main p code,main li code,main td code,.sub code{font-family:var(--mono);font-size:.86em;color:var(--lime);background:var(--panel);border:1px solid var(--line);padding:1px 6px;border-radius:5px}
+  ul{margin:12px 0 12px 4px;list-style:none}
+  li{position:relative;padding-left:20px;margin:7px 0;color:var(--ink-soft);font-weight:300}
+  li::before{content:"▸";position:absolute;left:0;color:var(--teal)}
 
-  .hero-cta{margin-top:30px;display:flex;flex-wrap:wrap;gap:14px;align-items:center}
-  .btn{font-family:var(--mono);font-size:14px;font-weight:600;padding:13px 22px;border-radius:10px;
-    display:inline-flex;align-items:center;gap:9px;transition:transform .15s,background .2s,border-color .2s}
-  .btn.primary{background:var(--lime);color:var(--bg)}
-  .btn.primary:hover{transform:translateY(-2px);box-shadow:0 12px 30px rgba(198,242,78,.3)}
-  .btn.ghost{border:1px solid var(--line);color:var(--ink)}
-  .btn.ghost:hover{border-color:var(--teal);color:var(--teal)}
-  .hero-meta{margin-top:22px;font-family:var(--mono);font-size:12.5px;color:var(--ink-dim);display:flex;gap:20px;flex-wrap:wrap}
-  .hero-meta b{color:var(--ink-soft);font-weight:500}
+  /* code block */
+  .code{background:linear-gradient(180deg,var(--panel),var(--bg-soft));border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:16px 0}
+  .code-bar{display:flex;align-items:center;gap:7px;padding:9px 13px;border-bottom:1px solid var(--line);background:rgba(255,255,255,.015)}
+  .code-bar i{width:10px;height:10px;border-radius:50%;display:block}
+  .code-bar i:nth-child(1){background:#ff5f57}.code-bar i:nth-child(2){background:#febc2e}.code-bar i:nth-child(3){background:#28c840}
+  .code-bar span{margin-left:6px;font-family:var(--mono);font-size:11.5px;color:var(--ink-dim)}
+  .code-bar .copy{margin-left:auto;background:transparent;border:1px solid var(--line);color:var(--ink-soft);font-family:var(--mono);font-size:11px;padding:4px 9px;border-radius:6px;cursor:pointer;transition:.15s}
+  .code-bar .copy:hover{border-color:var(--lime);color:var(--lime)}
+  .code-bar .copy.ok{border-color:var(--teal);color:var(--teal)}
+  pre{padding:15px 16px;overflow-x:auto;font-family:var(--mono);font-size:13.5px;line-height:1.75}
+  pre code{color:var(--ink)}
+  .c-pr{color:var(--teal)}.c-cm{color:var(--ink-dim)}.c-hl{color:var(--lime);font-weight:700}.c-st{color:var(--rose)}
 
-  /* section scaffolding */
-  section{padding:84px 0;position:relative}
-  .sec-head{margin-bottom:48px;max-width:60ch}
-  .kicker{font-family:var(--mono);font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--lime);margin-bottom:14px}
-  h2{font-family:var(--display);font-weight:800;letter-spacing:-.03em;font-size:clamp(28px,4.4vw,46px);line-height:1.04}
-  .sec-sub{margin-top:16px;color:var(--ink-soft);font-size:17px;font-weight:300}
-  .divider{height:1px;background:linear-gradient(90deg,transparent,var(--line),transparent)}
+  /* tables */
+  .tbl{width:100%;border-collapse:collapse;margin:16px 0;font-size:14px;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .tbl th{text-align:left;font-family:var(--mono);font-size:11.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-dim);background:var(--panel);padding:11px 14px;border-bottom:1px solid var(--line)}
+  .tbl td{padding:11px 14px;border-bottom:1px solid var(--line);color:var(--ink-soft);font-weight:300;vertical-align:top}
+  .tbl tr:last-child td{border-bottom:0}
+  .tbl td:first-child{white-space:nowrap}
 
-  /* layers */
-  .layers{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
-  @media(max-width:880px){.layers{grid-template-columns:1fr}}
-  .layer{background:linear-gradient(180deg,var(--panel),var(--bg-soft));border:1px solid var(--line);
-    border-radius:18px;padding:30px 26px;position:relative;overflow:hidden;transition:transform .25s,border-color .25s}
-  .layer:hover{transform:translateY(-5px);border-color:var(--teal)}
-  .layer .no{font-family:var(--mono);font-size:12px;color:var(--ink-dim);letter-spacing:.1em}
-  .layer h3{font-family:var(--display);font-weight:700;font-size:23px;margin:14px 0 6px;letter-spacing:-.02em}
-  .layer .tag{font-family:var(--mono);font-size:11.5px;color:var(--lime);margin-bottom:14px}
-  .layer p{color:var(--ink-soft);font-size:14.5px;font-weight:300}
-  .layer .ico{width:40px;height:40px;display:flex;align-items:center;justify-content:center;
-    border:1px solid var(--line);border-radius:11px;background:rgba(198,242,78,.05);position:absolute;top:26px;right:24px}
-  .flow{margin-top:34px;font-family:var(--mono);font-size:13px;color:var(--ink-dim);text-align:center;
-    border:1px dashed var(--line);border-radius:12px;padding:16px;line-height:2}
-  .flow b{color:var(--teal)}
-  .flow .a{color:var(--lime)}
+  .note{border:1px solid var(--line);border-left:3px solid var(--teal);background:var(--bg-soft);border-radius:10px;padding:14px 18px;margin:18px 0;font-size:14.5px}
+  .note.warn{border-left-color:var(--rose)}
+  .note.lime{border-left-color:var(--lime)}
+  .note b{color:var(--ink)}
+  .note .lbl{font-family:var(--mono);font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--teal);display:block;margin-bottom:5px}
+  .note.warn .lbl{color:var(--rose)}.note.lime .lbl{color:var(--lime)}
 
-  /* concepts grid */
-  .concepts{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
-  @media(max-width:980px){.concepts{grid-template-columns:repeat(2,1fr)}}
-  @media(max-width:520px){.concepts{grid-template-columns:1fr}}
-  .concept{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px 20px;transition:.25s}
-  .concept:hover{background:var(--panel-2);border-color:var(--lime);transform:translateY(-3px)}
-  .concept .sym{font-family:var(--mono);font-size:13px;color:var(--bg);background:var(--lime);
-    width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;margin-bottom:14px}
-  .concept h4{font-family:var(--display);font-weight:700;font-size:17px;margin-bottom:6px;letter-spacing:-.01em}
-  .concept p{font-size:13.5px;color:var(--ink-soft);font-weight:300}
-  .concept .pill{font-family:var(--mono);font-size:10.5px;color:var(--teal);margin-top:10px;display:inline-block}
+  .pillrow{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}
+  .pill{font-family:var(--mono);font-size:12px;color:var(--ink-soft);border:1px solid var(--line);background:var(--panel);padding:6px 12px;border-radius:999px}
+  .pill.on{border-color:var(--lime);color:var(--lime);background:rgba(198,242,78,.05)}
 
-  /* steps */
-  .steps{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:start}
-  @media(max-width:880px){.steps{grid-template-columns:1fr}}
-  .step{display:flex;gap:18px;padding:22px 0;border-bottom:1px solid var(--line)}
-  .step:last-child{border-bottom:0}
-  .step .n{font-family:var(--mono);font-size:13px;color:var(--lime);border:1px solid var(--line);
-    border-radius:9px;width:38px;height:38px;flex:none;display:flex;align-items:center;justify-content:center;font-weight:700}
-  .step h4{font-family:var(--display);font-weight:700;font-size:18px;margin-bottom:5px}
-  .step p{color:var(--ink-soft);font-size:14px;font-weight:300}
-  .step code{font-family:var(--mono);font-size:12.5px;color:var(--lime);background:var(--panel);padding:2px 7px;border-radius:6px;border:1px solid var(--line)}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:18px 0}
+  .card{border:1px solid var(--line);background:var(--bg-soft);border-radius:12px;padding:18px}
+  .card h4{font-family:var(--display);font-weight:700;font-size:16px;margin-bottom:5px}
+  .card p{font-size:13.5px;margin:4px 0 0}
+  @media(max-width:780px){.grid3{grid-template-columns:1fr}}
 
-  /* feature list (deploy options) */
-  .deploys{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
-  @media(max-width:760px){.deploys{grid-template-columns:1fr}}
-  .deploy{border:1px solid var(--line);border-radius:14px;padding:24px;background:var(--bg-soft);transition:.25s}
-  .deploy:hover{border-color:var(--teal)}
-  .deploy h4{font-family:var(--display);font-weight:700;font-size:18px;display:flex;align-items:center;gap:10px;margin-bottom:8px}
-  .deploy h4 .b{font-family:var(--mono);font-size:10.5px;color:var(--bg);background:var(--teal);padding:3px 8px;border-radius:6px}
-  .deploy p{color:var(--ink-soft);font-size:14px;font-weight:300}
+  footer{border-top:1px solid var(--line);padding:30px 0;margin-top:30px;font-family:var(--mono);font-size:12px;color:var(--ink-dim);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
 
-  /* providers */
-  .prov-grid{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px}
-  .chip{font-family:var(--mono);font-size:12.5px;color:var(--ink-soft);border:1px solid var(--line);
-    background:var(--panel);padding:8px 14px;border-radius:999px;transition:.2s}
-  .chip:hover{border-color:var(--lime);color:var(--ink)}
-  .chip.on{border-color:var(--lime);color:var(--lime);background:rgba(198,242,78,.06)}
-
-  /* cta band */
-  .band{border:1px solid var(--line);border-radius:24px;padding:56px 40px;text-align:center;position:relative;overflow:hidden;
-    background:linear-gradient(180deg,var(--panel),var(--bg-soft))}
-  .band::before{content:"";position:absolute;inset:0;background:radial-gradient(600px 300px at 50% 0,rgba(198,242,78,.12),transparent 70%)}
-  .band > *{position:relative}
-  .band h2{font-size:clamp(28px,5vw,48px)}
-  .band p{color:var(--ink-soft);margin:16px auto 30px;max-width:50ch;font-weight:300}
-
-  /* footer */
-  footer{border-top:1px solid var(--line);padding:56px 0 48px;margin-top:40px}
-  .foot{display:flex;justify-content:space-between;gap:30px;flex-wrap:wrap;align-items:flex-start}
-  .foot .brand{margin-bottom:14px}
-  .foot p{color:var(--ink-dim);font-size:13.5px;max-width:34ch;font-weight:300}
-  .foot-cols{display:flex;gap:54px;flex-wrap:wrap}
-  .foot-col h5{font-family:var(--mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:14px}
-  .foot-col a{display:block;color:var(--ink-dim);font-size:14px;margin-bottom:9px;transition:.2s}
-  .foot-col a:hover{color:var(--lime)}
-  .foot-bot{margin-top:42px;padding-top:24px;border-top:1px solid var(--line);
-    display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;font-family:var(--mono);font-size:12px;color:var(--ink-dim)}
-
-  /* reveal */
-  .rv{opacity:0;transform:translateY(22px);transition:opacity .7s cubic-bezier(.2,.7,.2,1),transform .7s cubic-bezier(.2,.7,.2,1)}
-  .rv.in{opacity:1;transform:none}
+  /* mobile */
+  .scrim{display:none}
+  @media(max-width:900px){
+    .shell{grid-template-columns:1fr;gap:0}
+    aside{position:fixed;left:0;top:60px;width:280px;background:var(--bg);z-index:40;transform:translateX(-105%);transition:transform .25s;border-right:1px solid var(--line);padding:24px 18px}
+    aside.open{transform:none}
+    .scrim.show{display:block;position:fixed;inset:60px 0 0 0;background:rgba(0,0,0,.5);z-index:30}
+    #menuBtn{display:block}
+    main{padding-top:26px}
+    .nav-right .hideMobile{display:none}
+  }
 </style>
 </head>
 <body>
-<div class="bg-fx"></div>
-<div class="grid-fx"></div>
-<div class="grain"></div>
+<div class="bg-fx"></div><div class="grain"></div>
 
 <nav>
-  <div class="wrap nav-in">
-    <a class="brand" href="#top">
-      <svg class="logo" viewBox="0 0 32 32" aria-hidden="true">
-        <circle cx="16" cy="9" r="4.2" fill="#c6f24e"/>
-        <circle cx="9" cy="22" r="4.2" fill="#56e0c8"/>
-        <circle cx="23" cy="22" r="4.2" fill="#c6f24e"/>
-        <path d="M16 9 L9 22 L23 22 Z" fill="none" stroke="#23302e" stroke-width="1.4"/>
-      </svg>
-      Baryon&nbsp;CLI
-    </a>
-    <div class="nav-links">
-      <a href="#start">설치</a>
-      <a href="#arch">구성</a>
-      <a href="#learn">학습 개념</a>
-      <a href="#deploy">배포 형태</a>
-      <a href="https://github.com/baryonlabs/cli.baryon.ai" target="_blank" rel="noopener">GitHub</a>
+  <div class="nav-in">
+    <div style="display:flex;align-items:center;gap:12px">
+      <button id="menuBtn" aria-label="menu">☰</button>
+      <a class="brand" href="#overview">
+        <svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="9" r="4.2" fill="#c6f24e"/><circle cx="9" cy="22" r="4.2" fill="#56e0c8"/><circle cx="23" cy="22" r="4.2" fill="#c6f24e"/><path d="M16 9 L9 22 L23 22 Z" fill="none" stroke="#23302e" stroke-width="1.4"/></svg>
+        Baryon&nbsp;CLI
+      </a>
+      <span class="ver">docs</span>
     </div>
-    <a class="nav-cta" href="#start">한 줄 설치 →</a>
+    <div class="nav-right">
+      <a class="hideMobile" href="https://chat.baryon.ai" target="_blank" rel="noopener">Web UI</a>
+      <a class="hideMobile" href="https://www.npmjs.com/package/@baryonlabs/cli" target="_blank" rel="noopener">npm</a>
+      <a href="https://github.com/baryonlabs/cli.baryon.ai" target="_blank" rel="noopener">GitHub</a>
+      <a class="nav-cta" href="#install">설치</a>
+    </div>
   </div>
 </nav>
 
-<a id="top"></a>
-<header class="hero">
-  <div class="wrap">
-    <div class="eyebrow rv"><span class="dot"></span> Baryon Labs · 교육기관 납품용 AI 코딩·학습 플랫폼</div>
-    <h1 class="rv">한 줄 설치로<br><span class="grad">AI 코딩·학습</span><br>에이전트.</h1>
-    <p class="lede rv">브라우저 <b>Web UI</b>, 코드를 직접 쓰고 실행하는 <b>코딩 에이전트(pi)</b>, 그리고 이를 구동하는 <b>baryon.ai API</b>를 하나로 묶었습니다. <b>LLM API까지 Baryon이 직접 제공</b> — 기관의 별도 단기 API 계약이 필요 없습니다.</p>
+<div class="scrim" id="scrim"></div>
+<div class="shell">
+  <aside id="sidebar">
+    <h6>시작하기</h6>
+    <a href="#overview">개요</a>
+    <a href="#install">설치</a>
+    <a href="#quickstart">빠른 시작</a>
+    <h6>핵심</h6>
+    <a href="#auth">인증 · 키 관리</a>
+    <a href="#commands">명령어 레퍼런스</a>
+    <a href="#config">설정</a>
+    <h6>활용</h6>
+    <a href="#models">모델 · 프로바이더</a>
+    <a href="#modes">실행 모드 · 세션</a>
+    <a href="#offline">오프라인 · 온프레미스</a>
+    <h6>도움말</h6>
+    <a href="#troubleshooting">트러블슈팅</a>
+    <a href="#faq">FAQ</a>
+  </aside>
 
-    <div class="install rv">
-      <div class="term">
-        <div class="term-bar"><i></i><i></i><i></i><span>terminal — baryon cli</span></div>
-        <div class="term-body">
-          <div class="cmd">
-            <span class="pr">$</span><code>npm install -g <b>@baryonlabs/cli</b></code>
-            <button class="copy" data-copy="npm install -g @baryonlabs/cli">복사</button>
-          </div>
-          <div class="cmd">
-            <span class="pr">$</span><code><b>baryon</b></code>
-            <button class="copy" data-copy="baryon">복사</button>
-          </div>
-          <div class="out">  <span class="ok">✔</span> baryon.ai API 기본 연결됨 · 모델 비교/전환 준비 완료</div>
-          <div class="out">  <span class="ok">✔</span> 세션 · 메모리 · 도구 호출 · 서브에이전트 활성화</div>
-        </div>
+  <main>
+    <div class="hero-doc">
+      <div class="eyebrow"><span class="dot"></span> @baryonlabs/cli · 교육기관 납품용</div>
+      <h1>Baryon CLI<br><span class="grad">공식 문서</span></h1>
+      <p class="lede">한 줄 설치로 시작하는 <b>AI 코딩·학습 에이전트</b>. 실제 코딩 에이전트 <code>pi</code> 를 <b>baryon.ai API</b> 에 연결해, 별도 키 설정 없이 바로 코드를 쓰고 실행합니다. 상용·로컬 모델은 무중단 전환됩니다.</p>
+      <div class="code">
+        <div class="code-bar"><i></i><i></i><i></i><span>terminal</span><button class="copy" data-copy="npm install -g @baryonlabs/cli && baryon setup && baryon">복사</button></div>
+        <pre><code><span class="c-pr">$</span> npm install -g <span class="c-hl">@baryonlabs/cli</span>
+<span class="c-pr">$</span> baryon setup        <span class="c-cm"># vibecamp.us 키 등록</span>
+<span class="c-pr">$</span> baryon              <span class="c-cm"># 코딩 에이전트 시작</span></code></pre>
       </div>
     </div>
 
-    <div class="hero-cta rv">
-      <a class="btn primary" href="#start">설치 가이드 보기</a>
-      <a class="btn ghost" href="https://chat.baryon.ai" target="_blank" rel="noopener">Web UI 바로 접속 ↗</a>
-    </div>
-    <div class="hero-meta rv">
-      <span><b>Node.js ≥ 22</b> 만 있으면 끝</span>
-      <span><b>Docker 불필요</b> · 빌드 과정 없음</span>
-      <span><b>상용·로컬 모델</b> 무중단 전환</span>
-    </div>
-  </div>
-</header>
-
-<div class="wrap"><div class="divider"></div></div>
-
-<!-- QUICK START -->
-<section id="start">
-  <div class="wrap">
-    <div class="sec-head rv">
-      <div class="kicker">Quick Start</div>
-      <h2>두 경로로 즉시 시작.</h2>
-      <p class="sec-sub">학생·교강사는 설치 없이 브라우저로, 코딩 실습은 명령 한 줄로. 두 경로 모두 baryon.ai API가 기본 백엔드로 연결됩니다.</p>
-    </div>
-    <div class="steps">
-      <div>
-        <div class="step rv"><div class="n">1</div><div>
-          <h4>설치</h4>
-          <p><code>npm install -g @baryonlabs/cli</code> — pnpm · yarn · bun 모두 지원. Node.js만 있으면 완료됩니다.</p>
-        </div></div>
-        <div class="step rv"><div class="n">2</div><div>
-          <h4>연결</h4>
-          <p><code>baryon setup</code> — <a href="https://vibecamp.us/dashboard" target="_blank" rel="noopener" style="color:var(--teal)">vibecamp.us</a> 에서 발급한 키(<code>vc_live_…</code>)를 한 번 등록하면 <code>~/.pi/agent/models.json</code>에 <code>baryon</code> 프로바이더가 자동 구성됩니다. <code>baryon keys</code> 로 발급 페이지를 바로 엽니다.</p>
-        </div></div>
-        <div class="step rv"><div class="n">3</div><div>
-          <h4>실행</h4>
-          <p><code>baryon</code> 으로 대화형 코딩 에이전트 시작. <code>baryon -p "..."</code> 로 단발 실행(JSON 출력)도 가능합니다.</p>
-        </div></div>
-        <div class="step rv"><div class="n">4</div><div>
-          <h4>전환</h4>
-          <p><code>baryon models</code> 로 사용 가능한 모델을 보고, 세션 중 <code>/model</code> 로 상용·로컬 모델을 자유롭게 비교·전환합니다.</p>
-        </div></div>
+    <!-- OVERVIEW -->
+    <section id="overview">
+      <h2><span class="hash">#</span>개요</h2>
+      <p class="sub"><code>@baryonlabs/cli</code> 는 코딩 에이전트 <code>pi</code> 를 baryon.ai 플랫폼에 연결하는 얇은 래퍼입니다. <code>baryon</code> 명령은 <code>pi</code> 를 <code>baryon</code> 프로바이더로 실행하고, 그 외 모든 인자를 그대로 전달합니다.</p>
+      <div class="grid3">
+        <div class="card"><h4>① Web UI</h4><p>brower에서 여러 LLM 비교·세션·도구 호출·문서 생성. <code>chat.baryon.ai</code></p></div>
+        <div class="card"><h4>② 코딩 에이전트</h4><p><code>@baryonlabs/cli</code> → <code>pi</code>. 대화형/JSON/RPC/SDK, 세션, 서브에이전트.</p></div>
+        <div class="card"><h4>③ LLM 백엔드</h4><p><code>baryon.ai API</code> (OpenAI 호환). 로컬 LLM·기관 키로 전환.</p></div>
       </div>
-      <div class="term rv" style="position:sticky;top:88px">
-        <div class="term-bar"><i></i><i></i><i></i><span>~/project — baryon</span></div>
-        <div class="term-body" style="font-size:13.5px">
-          <div class="cmd"><span class="pr">$</span><code>baryon setup</code></div>
-          <div class="out">  baryon.ai API key › <span class="ok">••••••••</span></div>
-          <div class="out">  <span class="ok">✔</span> wrote ~/.pi/agent/models.json</div>
-          <div class="out">  <span class="ok">✔</span> provider <span style="color:var(--lime)">baryon</span> · 4 models</div>
-          <div class="cmd" style="margin-top:6px"><span class="pr">$</span><code>baryon -p "CSV 분석해 차트 만들어줘"</code></div>
-          <div class="out">  → 코드 작성 · 실행 · 산출물 생성…</div>
-          <div class="out">  <span class="ok">✔</span> report.html · chart.svg 생성됨</div>
-        </div>
+      <h3>요구사항</h3>
+      <ul>
+        <li><b>Node.js ≥ 22.19</b> — <code>node -v</code> 로 확인. Docker·빌드 과정 불필요.</li>
+        <li>패키지 매니저: npm · pnpm · yarn · bun 중 무엇이든.</li>
+        <li>baryon.ai API 키 (<code>vc_live_…</code>) — <a href="https://vibecamp.us/dashboard" target="_blank" rel="noopener" style="color:var(--teal)">vibecamp.us</a> 에서 발급.</li>
+      </ul>
+    </section>
+
+    <!-- INSTALL -->
+    <section id="install">
+      <h2><span class="hash">#</span>설치</h2>
+      <p class="sub">전역 설치로 <code>baryon</code> 명령을 추가합니다. 내부적으로 <code>@earendil-works/pi-coding-agent</code> 를 의존성으로 함께 설치합니다.</p>
+      <div class="code">
+        <div class="code-bar"><i></i><i></i><i></i><span>npm / pnpm / yarn / bun</span><button class="copy" data-copy="npm install -g @baryonlabs/cli">복사</button></div>
+        <pre><code><span class="c-pr">$</span> npm install -g <span class="c-hl">@baryonlabs/cli</span>
+<span class="c-pr">$</span> pnpm add -g <span class="c-hl">@baryonlabs/cli</span>
+<span class="c-pr">$</span> yarn global add <span class="c-hl">@baryonlabs/cli</span>
+<span class="c-pr">$</span> bun add -g <span class="c-hl">@baryonlabs/cli</span></code></pre>
       </div>
-    </div>
-  </div>
-</section>
-
-<div class="wrap"><div class="divider"></div></div>
-
-<!-- ARCHITECTURE -->
-<section id="arch">
-  <div class="wrap">
-    <div class="sec-head rv">
-      <div class="kicker">Architecture</div>
-      <h2>세 계층, 단일 패키지.</h2>
-      <p class="sec-sub">Web UI · 코딩 에이전트 · LLM 백엔드 — 세 계층 모두 함께 배포됩니다. 별도 구축 인력이 필요 없습니다.</p>
-    </div>
-    <div class="layers">
-      <div class="layer rv">
-        <div class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#c6f24e" stroke-width="1.6"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M3 8h18M8 21h8"/></svg></div>
-        <div class="no">LAYER 01</div>
-        <h3>Web UI</h3>
-        <div class="tag">chat.baryon.ai · pi-web-ui</div>
-        <p>여러 LLM을 비교·전환하는 브라우저 인터페이스. 세션·메모리, 도구 호출, 문서 생성을 화면에서 직접 관찰. 만든 HTML은 miri.dev로 즉시 공개 URL 게시. PDF·DOCX·XLSX·PPTX·이미지 첨부 지원.</p>
+      <h3>스크립트 설치 (curl)</h3>
+      <div class="code">
+        <div class="code-bar"><i></i><i></i><i></i><span>shell</span><button class="copy" data-copy="curl -fsSL https://cli.baryon.ai/install.sh | sh">복사</button></div>
+        <pre><code><span class="c-pr">$</span> curl -fsSL <span class="c-st">https://cli.baryon.ai/install.sh</span> | sh</code></pre>
       </div>
-      <div class="layer rv">
-        <div class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#56e0c8" stroke-width="1.6"><path d="M8 9l3 3-3 3M13 15h3"/><rect x="3" y="4" width="18" height="16" rx="2"/></svg></div>
-        <div class="no">LAYER 02</div>
-        <h3>코딩 에이전트 (pi)</h3>
-        <div class="tag">@baryonlabs/cli → pi</div>
-        <p>코드로 문서를 생성하고 자료를 분석하는 에이전트. 서브에이전트로 작업을 분해·위임·통합. 대화형 / 출력(JSON) / RPC / SDK 4가지 모드, 세션 분기·재개, TypeScript 확장 지원.</p>
+      <p>Node 버전·패키지 매니저를 자동 감지해 설치합니다. 설치 후 <code>baryon doctor</code> 로 환경을 점검하세요.</p>
+      <div class="note"><span class="lbl">검증</span><code>baryon --version</code> 으로 CLI/pi 버전을, <code>baryon doctor</code> 로 Node·pi·키·연결을 한 번에 확인합니다.</div>
+    </section>
+
+    <!-- QUICK START -->
+    <section id="quickstart">
+      <h2><span class="hash">#</span>빠른 시작</h2>
+      <p class="sub">설치 → 키 발급 → 연결 → 실행. 4단계면 끝입니다.</p>
+      <div class="code">
+        <div class="code-bar"><i></i><i></i><i></i><span>~/project</span><button class="copy" data-copy="baryon keys
+baryon setup
+baryon -p &quot;CSV를 분석해 차트를 만들어줘&quot;">복사</button></div>
+        <pre><code><span class="c-pr">$</span> baryon keys                         <span class="c-cm"># 1. vibecamp.us 발급 페이지 열기</span>
+<span class="c-pr">$</span> baryon setup                        <span class="c-cm"># 2. vc_live_ 키 등록 (1회)</span>
+  <span class="c-hl">✔</span> wrote ~/.baryon/config.json
+  <span class="c-hl">✔</span> provider <span class="c-hl">baryon</span> · 4 models
+<span class="c-pr">$</span> baryon                              <span class="c-cm"># 3. 대화형 에이전트 시작</span>
+<span class="c-pr">$</span> baryon -p <span class="c-st">"CSV를 분석해 차트를 만들어줘"</span>   <span class="c-cm"># 4. 단발 실행</span></code></pre>
       </div>
-      <div class="layer rv">
-        <div class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#c6f24e" stroke-width="1.6"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg></div>
-        <div class="no">LAYER 03</div>
-        <h3>LLM 백엔드</h3>
-        <div class="tag">baryon.ai API · OpenAI 호환</div>
-        <p>에이전트와 UI를 구동하는 모델 접속 계층. 별도 키 설정 없이 패키지에 내장 제공. 필요 시 로컬 LLM(Ollama·LM Studio·vLLM) 또는 기관 자체 키로 무중단 전환.</p>
+    </section>
+
+    <!-- AUTH -->
+    <section id="auth">
+      <h2><span class="hash">#</span>인증 · 키 관리</h2>
+      <p class="sub">키 발급·회수·쿼터의 원천(source of truth)은 <b>vibecamp.us</b> 입니다. baryon.ai API 는 매 요청마다 키를 vibecamp.us 에 검증합니다. 키 형식은 <code>vc_live_…</code>.</p>
+      <table class="tbl">
+        <tr><th>무엇</th><th>어디서</th></tr>
+        <tr><td>키 발급 · 회수 · 쿼터</td><td><a href="https://vibecamp.us/dashboard" target="_blank" rel="noopener" style="color:var(--teal)">vibecamp.us/dashboard</a> · <code>baryon keys</code> 로 바로 열기</td></tr>
+        <tr><td>CLI 로컬 저장</td><td><code>~/.baryon/config.json</code> (권한 600)</td></tr>
+        <tr><td>pi 프로바이더 참조</td><td><code>~/.pi/agent/models.json</code> — 키 대신 <code>$BARYON_API_KEY</code> 토큰만</td></tr>
+        <tr><td>환경변수 우선</td><td><code>BARYON_API_KEY</code> 가 있으면 파일보다 우선</td></tr>
+      </table>
+      <div class="note lime"><span class="lbl">동작 방식</span><code>baryon setup</code> 은 ① 키를 <code>~/.baryon/config.json</code> 에 저장하고 ② <code>${BARYON_BASE_URL}/models</code> 로 모델을 조회한 뒤(오프라인이면 기본값) ③ <code>~/.pi/agent/models.json</code> 에 <b>다른 프로바이더를 보존하며</b> <code>baryon</code> 프로바이더를 병합합니다.</div>
+      <div class="code">
+        <div class="code-bar"><i></i><i></i><i></i><span>키 등록/변경</span><button class="copy" data-copy="baryon setup --key vc_live_xxxxx
+baryon config --key vc_live_xxxxx
+export BARYON_API_KEY=vc_live_xxxxx">복사</button></div>
+        <pre><code><span class="c-pr">$</span> baryon setup --key <span class="c-st">vc_live_xxxxx</span>     <span class="c-cm"># 비대화형 등록</span>
+<span class="c-pr">$</span> baryon config --key <span class="c-st">vc_live_xxxxx</span>    <span class="c-cm"># 키만 갱신</span>
+<span class="c-pr">$</span> export BARYON_API_KEY=<span class="c-st">vc_live_xxxxx</span>   <span class="c-cm"># 환경변수로 주입(CI 등)</span></code></pre>
       </div>
-    </div>
-    <div class="flow rv">
-      <b>사용자(브라우저)</b> <span class="a">→</span> <b>Web UI</b> <span class="a">→</span> <b>코딩 에이전트 (pi)</b> <span class="a">→</span> <b>baryon.ai API</b> <span style="color:var(--ink-dim)">(또는 로컬 LLM)</span> <span class="a">→</span> <b>결과 반환</b>
-    </div>
-  </div>
-</section>
+    </section>
 
-<div class="wrap"><div class="divider"></div></div>
+    <!-- COMMANDS -->
+    <section id="commands">
+      <h2><span class="hash">#</span>명령어 레퍼런스</h2>
+      <p class="sub">내장 서브커맨드는 로컬에서 처리하고, 그 외 모든 인자는 <code>pi</code> 로 전달됩니다.</p>
+      <table class="tbl">
+        <tr><th>명령</th><th>설명</th></tr>
+        <tr><td><code>baryon</code></td><td>대화형 코딩 에이전트 시작 (baryon 프로바이더 기본 주입)</td></tr>
+        <tr><td><code>baryon setup</code></td><td>키 등록 + pi 프로바이더 구성. <code>--key</code>, <code>--base-url</code></td></tr>
+        <tr><td><code>baryon keys</code></td><td>vibecamp.us 키 발급·관리 대시보드 출력/열기</td></tr>
+        <tr><td><code>baryon config</code></td><td>현재 설정 보기. <code>--key</code> · <code>--base-url</code> · <code>--model</code> 로 변경</td></tr>
+        <tr><td><code>baryon models</code></td><td>사용 가능한 모델 목록 (<code>pi --list-models</code> 패스스루)</td></tr>
+        <tr><td><code>baryon doctor</code></td><td>Node · pi · config · 키 · 연결 진단</td></tr>
+        <tr><td><code>baryon update</code></td><td>CLI + pi 에이전트 최신화</td></tr>
+        <tr><td><code>baryon help</code> · <code>--version</code></td><td>도움말 · 버전</td></tr>
+      </table>
 
-<!-- LEARNING CONCEPTS -->
-<section id="learn">
-  <div class="wrap">
-    <div class="sec-head rv">
-      <div class="kicker">Learning by Doing</div>
-      <h2>쓰는 게 아니라,<br>원리를 다룬다.</h2>
-      <p class="sec-sub">단순 사용을 넘어, 학생이 현대 AI 시스템이 실제로 어떻게 동작하는지를 ‘눈으로 보고 손으로 다루며’ 학습합니다.</p>
-    </div>
-    <div class="concepts">
-      <div class="concept rv"><div class="sym">≈</div><h4>모델 비교·체험</h4><p>같은 질문을 여러 LLM에 적용해 품질·속도·비용을 비교, 자유롭게 전환.</p><span class="pill">→ 모델 감각</span></div>
-      <div class="concept rv"><div class="sym">⟳</div><h4>세션과 메모리</h4><p>대화 맥락이 저장·유지·재개되는 방식과 메모리의 영향을 직접 관찰.</p><span class="pill">→ 상태 관리</span></div>
-      <div class="concept rv"><div class="sym">⚙</div><h4>도구 호출</h4><p>AI가 외부 도구를 호출하고 결과로 답을 만드는 과정을 시각화.</p><span class="pill">→ 행동 메커니즘</span></div>
-      <div class="concept rv"><div class="sym">▤</div><h4>문서 생성</h4><p>대화로부터 HTML·Markdown·SVG 아티팩트가 만들어지는 과정 체험.</p><span class="pill">→ 산출물 변환</span></div>
-      <div class="concept rv"><div class="sym">↗</div><h4>웹 제작·배포</h4><p>HTML 홈페이지를 만들고 miri.dev로 즉시 공개 URL에 게시.</p><span class="pill">→ 실제 배포</span></div>
-      <div class="concept rv"><div class="sym">⌥</div><h4>코드로 문서 생성</h4><p>자연어 → 코드 작성·실행 → 보고서·슬라이드·표 산출 파이프라인.</p><span class="pill">→ 자동화</span></div>
-      <div class="concept rv"><div class="sym">∑</div><h4>자료 분석</h4><p>CSV 등 데이터를 코드로 처리·분석하고 표·차트로 시각화.</p><span class="pill">→ 데이터 실습</span></div>
-      <div class="concept rv"><div class="sym">⋔</div><h4>서브에이전트</h4><p>하나의 작업을 여러 하위 에이전트로 분할·위임하고 결과를 통합.</p><span class="pill">→ 오케스트레이션</span></div>
-    </div>
-  </div>
-</section>
-
-<div class="wrap"><div class="divider"></div></div>
-
-<!-- PROVIDERS -->
-<section id="providers">
-  <div class="wrap">
-    <div class="sec-head rv">
-      <div class="kicker">Multi-Provider</div>
-      <h2>하나의 인터페이스,<br>모든 모델.</h2>
-      <p class="sec-sub">기본값은 baryon.ai API. 기관 정책에 따라 상용 모델 또는 완전 오프라인 로컬 모델로 무중단 전환합니다. 폐쇄망·개인정보 민감 환경에 특히 중요한 운영 옵션입니다.</p>
-    </div>
-    <div class="prov-grid rv">
-      <span class="chip on">baryon.ai (기본)</span>
-      <span class="chip">Anthropic</span>
-      <span class="chip">OpenAI</span>
-      <span class="chip">Google Gemini</span>
-      <span class="chip">Azure OpenAI</span>
-      <span class="chip">OpenRouter</span>
-      <span class="chip">Groq</span>
-      <span class="chip">Ollama · 로컬</span>
-      <span class="chip">LM Studio · 로컬</span>
-      <span class="chip">vLLM · 로컬</span>
-    </div>
-  </div>
-</section>
-
-<div class="wrap"><div class="divider"></div></div>
-
-<!-- DEPLOY OPTIONS -->
-<section id="deploy">
-  <div class="wrap">
-    <div class="sec-head rv">
-      <div class="kicker">Deployment</div>
-      <h2>클라우드부터 폐쇄망까지.</h2>
-      <p class="sec-sub">교내 환경에 맞춰 4가지 배포 형태를 지원합니다. 온프레미스·오프라인 구동 시 학생 코드·과제 데이터가 외부로 나가지 않습니다.</p>
-    </div>
-    <div class="deploys">
-      <div class="deploy rv"><h4>클라우드 (SaaS) <span class="b">FASTEST</span></h4><p>Baryon 호스팅. 가장 빠른 도입, 별도 인프라 불필요. 인터넷 연결 환경.</p></div>
-      <div class="deploy rv"><h4>온프레미스 <span class="b">GOVERNANCE</span></h4><p>기관 서버·교내 워크스테이션에 설치. 데이터 외부 미전송, 거버넌스 강화.</p></div>
-      <div class="deploy rv"><h4>오프라인 (로컬 LLM) <span class="b">AIR-GAP</span></h4><p>폐쇄망에서 로컬 모델(Ollama·LM Studio·vLLM)로 완전 오프라인 구동.</p></div>
-      <div class="deploy rv"><h4>엣지 / 현장 설치 <span class="b">EDGE</span></h4><p>교내 서버 또는 GPU 워크스테이션 단위 설치, 다중 강의실 동시 운영.</p></div>
-    </div>
-  </div>
-</section>
-
-<div class="wrap"><div class="divider"></div></div>
-
-<!-- CTA BAND -->
-<section>
-  <div class="wrap">
-    <div class="band rv">
-      <div class="kicker" style="justify-content:center">Get Started</div>
-      <h2>지금, 한 줄로 시작하세요.</h2>
-      <p>LLM API까지 패키지에 포함 — 기관의 별도 단기 API 계약·키 관리가 필요 없습니다.</p>
-      <div class="term" style="max-width:520px;margin:0 auto;text-align:left">
-        <div class="term-bar"><i></i><i></i><i></i><span>terminal</span></div>
-        <div class="term-body">
-          <div class="cmd"><span class="pr">$</span><code>npm install -g <b>@baryonlabs/cli</b></code>
-            <button class="copy" data-copy="npm install -g @baryonlabs/cli">복사</button></div>
-        </div>
+      <h3>pi 패스스루</h3>
+      <p>아래처럼 <code>pi</code> 의 모든 옵션을 그대로 쓸 수 있습니다. <code>--provider</code>/<code>--model</code>/<code>--api-key</code> 를 직접 주면 그 선택을 우선해, <b>모델 비교</b>가 자유롭습니다.</p>
+      <div class="code">
+        <div class="code-bar"><i></i><i></i><i></i><span>passthrough</span><button class="copy" data-copy="baryon -p &quot;요약해줘&quot;
+baryon @report.md @data.csv &quot;분석해줘&quot;
+baryon --provider openai --model gpt-4o
+baryon --mode json -p &quot;테스트 작성&quot;
+baryon -c   # 직전 세션 이어가기">복사</button></div>
+        <pre><code><span class="c-pr">$</span> baryon -p <span class="c-st">"요약해줘"</span>                      <span class="c-cm"># 단발 실행(print)</span>
+<span class="c-pr">$</span> baryon @report.md @data.csv <span class="c-st">"분석해줘"</span>    <span class="c-cm"># 파일 첨부</span>
+<span class="c-pr">$</span> baryon --provider openai --model gpt-4o    <span class="c-cm"># 다른 모델로 비교</span>
+<span class="c-pr">$</span> baryon --mode json -p <span class="c-st">"테스트 작성"</span>        <span class="c-cm"># JSON 이벤트 출력</span>
+<span class="c-pr">$</span> baryon -c                                  <span class="c-cm"># 직전 세션 이어가기</span></code></pre>
       </div>
-      <div class="hero-cta" style="justify-content:center;margin-top:28px">
-        <a class="btn primary" href="https://github.com/baryonlabs/cli.baryon.ai" target="_blank" rel="noopener">GitHub에서 보기</a>
-        <a class="btn ghost" href="mailto:support@baryon.ai">도입 문의 →</a>
-      </div>
-    </div>
-  </div>
-</section>
+    </section>
 
-<footer>
-  <div class="wrap">
-    <div class="foot">
-      <div>
-        <a class="brand" href="#top">
-          <svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="9" r="4.2" fill="#c6f24e"/><circle cx="9" cy="22" r="4.2" fill="#56e0c8"/><circle cx="23" cy="22" r="4.2" fill="#c6f24e"/></svg>
-          Baryon&nbsp;CLI
-        </a>
-        <p>AI 에이전트와 개발자 도구를 핵심 원리에서부터 설계·구축하는 기술 조직, Baryon Labs.</p>
+    <!-- CONFIG -->
+    <section id="config">
+      <h2><span class="hash">#</span>설정</h2>
+      <p class="sub">모든 설정은 환경변수 또는 config 파일로 제어합니다. 환경변수가 파일보다 우선합니다.</p>
+      <h3>환경변수</h3>
+      <table class="tbl">
+        <tr><th>변수</th><th>기본값</th><th>설명</th></tr>
+        <tr><td><code>BARYON_API_KEY</code></td><td>—</td><td>API 키. 있으면 config 파일보다 우선</td></tr>
+        <tr><td><code>BARYON_BASE_URL</code></td><td><code>https://api.baryon.ai/v1</code></td><td>OpenAI 호환 엔드포인트</td></tr>
+        <tr><td><code>BARYON_KEYS_URL</code></td><td><code>https://vibecamp.us/dashboard</code></td><td><code>baryon keys</code> 가 여는 주소</td></tr>
+      </table>
+      <h3>config 파일</h3>
+      <table class="tbl">
+        <tr><th>경로</th><th>내용</th></tr>
+        <tr><td><code>~/.baryon/config.json</code></td><td><code>apiKey</code> · <code>baseUrl</code> · <code>defaultModel</code> (권한 600)</td></tr>
+        <tr><td><code>~/.pi/agent/models.json</code></td><td>pi 프로바이더 정의. <code>baryon</code> 항목이 병합됨</td></tr>
+      </table>
+      <div class="code">
+        <div class="code-bar"><i></i><i></i><i></i><span>baryon config</span><button class="copy" data-copy="baryon config
+baryon config --base-url https://api.baryon.ai/v1
+baryon config --model baryon-coder">복사</button></div>
+        <pre><code><span class="c-pr">$</span> baryon config                                <span class="c-cm"># 현재 설정 출력</span>
+<span class="c-pr">$</span> baryon config --base-url <span class="c-st">https://api.baryon.ai/v1</span>
+<span class="c-pr">$</span> baryon config --model <span class="c-st">baryon-coder</span>        <span class="c-cm"># 기본 모델 변경</span></code></pre>
       </div>
-      <div class="foot-cols">
-        <div class="foot-col">
-          <h5>Product</h5>
-          <a href="#start">설치 가이드</a>
-          <a href="https://chat.baryon.ai" target="_blank" rel="noopener">Web UI</a>
-          <a href="https://www.npmjs.com/package/@baryonlabs/cli" target="_blank" rel="noopener">npm 패키지</a>
-          <a href="https://www.miri.dev" target="_blank" rel="noopener">miri.dev 배포</a>
-        </div>
-        <div class="foot-col">
-          <h5>Resources</h5>
-          <a href="https://github.com/baryonlabs/cli.baryon.ai" target="_blank" rel="noopener">GitHub</a>
-          <a href="https://github.com/baryonlabs/cli.baryon.ai#readme" target="_blank" rel="noopener">문서</a>
-          <a href="https://baryon.ai" target="_blank" rel="noopener">baryon.ai</a>
-        </div>
-        <div class="foot-col">
-          <h5>Contact</h5>
-          <a href="mailto:support@baryon.ai">support@baryon.ai</a>
-          <a href="https://github.com/baryonlabs" target="_blank" rel="noopener">@baryonlabs</a>
-        </div>
+    </section>
+
+    <!-- MODELS -->
+    <section id="models">
+      <h2><span class="hash">#</span>모델 · 프로바이더</h2>
+      <p class="sub">기본값은 baryon.ai API. 하나의 인터페이스로 상용·로컬 모델을 정규화하며, 세션 중 <code>/model</code> 로 즉시 전환·비교합니다.</p>
+      <div class="pillrow">
+        <span class="pill on">baryon.ai (기본)</span><span class="pill">Anthropic</span><span class="pill">OpenAI</span><span class="pill">Google Gemini</span><span class="pill">Azure</span><span class="pill">OpenRouter</span><span class="pill">Groq</span><span class="pill">Ollama</span><span class="pill">LM Studio</span><span class="pill">vLLM</span>
       </div>
-    </div>
-    <div class="foot-bot">
-      <span>© 2026 Baryon Labs · baryon.ai</span>
+      <ul>
+        <li><b>모델 목록</b> — <code>baryon models</code> 또는 세션 중 <kbd>Ctrl+L</kbd>.</li>
+        <li><b>전환·비교</b> — <code>baryon --provider openai --model gpt-4o</code> 로 같은 작업을 다른 모델에 적용.</li>
+        <li><b>기본 모델</b> — <code>baryon config --model &lt;id&gt;</code>. 정확한 모델 ID 는 기관 baryon.ai 플랜에 따릅니다.</li>
+      </ul>
+    </section>
+
+    <!-- MODES -->
+    <section id="modes">
+      <h2><span class="hash">#</span>실행 모드 · 세션</h2>
+      <p class="sub">pi 는 4가지 모드로 동작하며, 세션은 저장·분기·재개됩니다.</p>
+      <table class="tbl">
+        <tr><th>모드</th><th>플래그</th><th>용도</th></tr>
+        <tr><td>대화형</td><td>(기본)</td><td>터미널 인터랙티브</td></tr>
+        <tr><td>Print</td><td><code>-p</code></td><td>한 번 실행하고 종료 · 파이프 입력 병합</td></tr>
+        <tr><td>JSON</td><td><code>--mode json</code></td><td>이벤트를 JSON 라인으로 출력(프로세스 연동)</td></tr>
+        <tr><td>RPC</td><td><code>--mode rpc</code></td><td>프로세스 통합용 RPC</td></tr>
+      </table>
+      <table class="tbl">
+        <tr><th>세션</th><th>플래그</th></tr>
+        <tr><td>직전 세션 이어가기</td><td><code>-c</code> · <code>--continue</code></td></tr>
+        <tr><td>세션 선택·재개</td><td><code>-r</code> · <code>--resume</code></td></tr>
+        <tr><td>세션 분기(fork)</td><td><code>--fork &lt;id&gt;</code></td></tr>
+        <tr><td>저장 안 함</td><td><code>--no-session</code></td></tr>
+      </table>
+    </section>
+
+    <!-- OFFLINE -->
+    <section id="offline">
+      <h2><span class="hash">#</span>오프라인 · 온프레미스</h2>
+      <p class="sub">인터넷 없이도 동작합니다. 로컬 LLM 또는 기관 자체 호스팅 baryon.ai 게이트웨이로 base URL 을 바꾸면 됩니다. 학생 코드·과제 데이터가 외부로 나가지 않습니다.</p>
+      <h3>로컬 LLM (Ollama · LM Studio · vLLM)</h3>
+      <div class="code">
+        <div class="code-bar"><i></i><i></i><i></i><span>로컬 모델</span><button class="copy" data-copy="baryon setup --base-url http://localhost:11434/v1 --key ollama">복사</button></div>
+        <pre><code><span class="c-pr">$</span> baryon setup --base-url <span class="c-st">http://localhost:11434/v1</span> --key <span class="c-st">ollama</span></code></pre>
+      </div>
+      <h3>자체 호스팅 게이트웨이 (baryon-ai-api)</h3>
+      <p>OpenAI 호환 게이트웨이를 교내에 올리고 그쪽으로 연결합니다. 데이터 외부 미전송, 거버넌스 강화.</p>
+      <div class="code">
+        <div class="code-bar"><i></i><i></i><i></i><span>on-prem</span><button class="copy" data-copy="baryon config --base-url https://ai.your-campus.ac.kr/v1">복사</button></div>
+        <pre><code><span class="c-pr">$</span> baryon config --base-url <span class="c-st">https://ai.your-campus.ac.kr/v1</span></code></pre>
+      </div>
+    </section>
+
+    <!-- TROUBLESHOOTING -->
+    <section id="troubleshooting">
+      <h2><span class="hash">#</span>트러블슈팅</h2>
+      <p class="sub">먼저 <code>baryon doctor</code> 를 실행하세요 — Node·pi·config·키·연결을 한 번에 점검합니다.</p>
+      <table class="tbl">
+        <tr><th>증상</th><th>원인 · 해결</th></tr>
+        <tr><td><code>command not found: baryon</code></td><td>전역 bin 경로 누락. 설치 재시도 또는 <code>npm bin -g</code> 경로를 PATH 에 추가.</td></tr>
+        <tr><td><code>404 Not Found … @baryonlabs/cli</code></td><td>오래된 npm 캐시. <code>npm install -g @baryonlabs/cli@latest</code>.</td></tr>
+        <tr><td><code>401 Invalid API key</code></td><td>키가 만료·회수됨. <code>baryon keys</code> 에서 재발급 후 <code>baryon config --key …</code>.</td></tr>
+        <tr><td>연결 실패 / <code>fetch failed</code></td><td>엔드포인트 불가. <code>baryon config --base-url</code> 확인, 또는 로컬 LLM 사용. (백엔드 준비 중일 수 있음)</td></tr>
+        <tr><td>Node 22 미만</td><td><a href="https://nodejs.org" target="_blank" rel="noopener" style="color:var(--teal)">nodejs.org</a> 에서 22 이상으로 업그레이드.</td></tr>
+      </table>
+    </section>
+
+    <!-- FAQ -->
+    <section id="faq">
+      <h2><span class="hash">#</span>FAQ</h2>
+      <h3>키 없이 써볼 수 있나요?</h3>
+      <p>로컬 LLM(Ollama 등)으로 base URL 을 바꾸면 vibecamp.us 키 없이도 동작합니다. baryon.ai API 를 쓰려면 <code>vc_live_</code> 키가 필요합니다.</p>
+      <h3>기존 pi 설정을 덮어쓰나요?</h3>
+      <p>아니요. <code>baryon setup</code> 은 <code>~/.pi/agent/models.json</code> 의 다른 프로바이더를 보존하며 <code>baryon</code> 항목만 병합합니다.</p>
+      <h3>상용 모델로 바꿀 수 있나요?</h3>
+      <p>네. <code>baryon --provider anthropic</code> 처럼 pi 가 지원하는 모든 프로바이더로 무중단 전환됩니다.</p>
+      <h3>코드는 공개인가요?</h3>
+      <p>이 래퍼(<code>@baryonlabs/cli</code>)와 문서는 공개이며, 실제 코딩 에이전트 <code>pi</code> 본체는 별도로 관리됩니다.</p>
+    </section>
+
+    <footer>
+      <span>© 2026 Baryon Labs · baryon.ai · support@baryon.ai</span>
       <span>npm i -g @baryonlabs/cli</span>
-    </div>
-  </div>
-</footer>
+    </footer>
+  </main>
+</div>
 
 <script>
   // copy buttons
   document.querySelectorAll('.copy').forEach(function(b){
     b.addEventListener('click',function(){
-      var t=b.getAttribute('data-copy');
-      navigator.clipboard.writeText(t).then(function(){
+      navigator.clipboard.writeText(b.getAttribute('data-copy')).then(function(){
         var o=b.textContent;b.textContent='복사됨 ✓';b.classList.add('ok');
-        setTimeout(function(){b.textContent=o;b.classList.remove('ok')},1400);
+        setTimeout(function(){b.textContent=o;b.classList.remove('ok')},1300);
       });
     });
   });
-  // scroll reveal
+  // mobile sidebar
+  var sb=document.getElementById('sidebar'),sc=document.getElementById('scrim'),mb=document.getElementById('menuBtn');
+  function toggle(o){sb.classList.toggle('open',o);sc.classList.toggle('show',o);}
+  mb.addEventListener('click',function(){toggle(!sb.classList.contains('open'));});
+  sc.addEventListener('click',function(){toggle(false);});
+  // active section highlight + close on click (mobile)
+  var links=[].slice.call(document.querySelectorAll('aside a'));
+  var map={};links.forEach(function(a){map[a.getAttribute('href').slice(1)]=a;a.addEventListener('click',function(){if(window.innerWidth<=900)toggle(false);});});
   var io=new IntersectionObserver(function(es){
-    es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}});
-  },{threshold:.12});
-  document.querySelectorAll('.rv').forEach(function(el,i){
-    el.style.transitionDelay=(Math.min(i%4,3)*70)+'ms';
-    io.observe(el);
-  });
+    es.forEach(function(e){
+      if(e.isIntersecting){links.forEach(function(a){a.classList.remove('active')});var m=map[e.target.id];if(m)m.classList.add('active');}
+    });
+  },{rootMargin:'-40% 0px -55% 0px'});
+  document.querySelectorAll('main section').forEach(function(s){io.observe(s);});
 </script>
 </body>
 </html>
