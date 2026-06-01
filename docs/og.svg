@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96" role="img" aria-label="Baryon">
+  <rect width="96" height="96" rx="22" fill="#080b0c"/>
+  <path d="M48 27 L27 69 L69 69 Z" fill="none" stroke="#23302e" stroke-width="2.5"/>
+  <circle cx="48" cy="27" r="11" fill="#c6f24e"/>
+  <circle cx="27" cy="69" r="11" fill="#56e0c8"/>
+  <circle cx="69" cy="69" r="11" fill="#c6f24e"/>
+</svg>

@@ -1,0 +1,24 @@
+Baryon CLI — Proprietary License
+Copyright (c) 2026 Baryon Labs. All rights reserved.
+
+This package (@baryonlabs/cli) is distributed by Baryon Labs for use with the
+baryon.ai platform and the bundled pi coding agent.
+
+Permission is granted to install and use this package, in source or binary
+form, solely to access Baryon Labs services and authorized model providers.
+
+You may NOT, without prior written permission from Baryon Labs:
+  - redistribute, sublicense, sell, or rent this package;
+  - modify, fork, reverse engineer, or create derivative works for
+    redistribution;
+  - remove or alter this notice or any Baryon Labs branding.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
+OR OTHER DEALINGS IN THE SOFTWARE.
+
+The bundled @earendil-works/pi-coding-agent is licensed separately by its
+respective authors. Contact: support@baryon.ai

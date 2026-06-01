@@ -1,0 +1,211 @@
+// Built-in baryon subcommands. Anything not matched here is passed to pi.
+import { spawn } from "node:child_process";
+import { discoverModels, ping } from "./api.js";
+import {
+  hasConfig,
+  loadConfig,
+  piProviderConfigured,
+  saveConfig,
+  syncPiModels,
+  BARYON_CONFIG,
+  PI_MODELS_JSON,
+} from "./config.js";
+import {
+  DEFAULT_BASE_URL,
+  DEFAULT_MODELS,
+  HOMEPAGE,
+  PI_PACKAGE,
+  PROVIDER,
+  SUPPORT_EMAIL,
+} from "./constants.js";
+import { runPi, resolvePiEntry } from "./pi.js";
+import { banner, c, info, log, ok, err, warn, prompt, promptHidden, sym } from "./ui.js";
+
+/** Parse `--flag value` / `--flag=value` pairs out of argv. */
+function parseFlags(args) {
+  const out = {};
+  for (let i = 0; i < args.length; i++) {
+    const a = args[i];
+    if (a.startsWith("--")) {
+      const eq = a.indexOf("=");
+      if (eq !== -1) out[a.slice(2, eq)] = a.slice(eq + 1);
+      else if (args[i + 1] && !args[i + 1].startsWith("-"))
+        out[a.slice(2)] = args[++i];
+      else out[a.slice(2)] = true;
+    }
+  }
+  return out;
+}
+
+export async function setup(args) {
+  const flags = parseFlags(args);
+  banner();
+  log(c.bold("  baryon.ai 연결 설정\n"));
+
+  const existing = loadConfig();
+  const baseUrl = flags["base-url"] || existing.baseUrl || DEFAULT_BASE_URL;
+
+  let apiKey = flags.key || flags["api-key"] || process.env.BARYON_API_KEY || "";
+  if (!apiKey) {
+    apiKey = await promptHidden(`  ${sym.info} baryon.ai API key: `);
+  }
+  if (!apiKey) {
+    warn("API 키 없이 저장합니다. 나중에 `baryon setup --key <KEY>` 로 추가하세요.");
+  }
+
+  saveConfig({ apiKey, baseUrl });
+  ok(`config 저장 → ${c.dim(BARYON_CONFIG)}`);
+
+  // Try live model discovery; fall back to defaults offline.
+  let models = null;
+  if (apiKey) {
+    info("모델 목록을 조회하는 중…");
+    models = await discoverModels(baseUrl, apiKey);
+  }
+  if (models) {
+    ok(`${models.length}개 모델 발견 (${c.lime(models.map((m) => m.id).slice(0, 4).join(", "))}${models.length > 4 ? "…" : ""})`);
+  } else {
+    models = DEFAULT_MODELS;
+    warn(`모델 자동 조회 실패 — 기본 모델 ${models.length}개로 구성 (오프라인/폐쇄망 정상)`);
+  }
+
+  saveConfig({ defaultModel: models[0].id });
+  const file = syncPiModels({ baseUrl, models });
+  ok(`pi 프로바이더 ${c.lime(PROVIDER)} 구성 → ${c.dim(file)}`);
+
+  log(`\n  ${sym.ok} 준비 완료. ${c.lime("baryon")} 으로 시작하세요.\n`);
+  return 0;
+}
+
+export async function doctor() {
+  banner();
+  log(c.bold("  진단 (baryon doctor)\n"));
+  let problems = 0;
+
+  // node
+  const major = Number(process.versions.node.split(".")[0]);
+  if (major >= 22) ok(`Node.js ${process.version}`);
+  else {
+    err(`Node.js ${process.version} — 22 이상 필요`);
+    problems++;
+  }
+
+  // pi installed?
+  const entry = resolvePiEntry();
+  if (entry) ok(`${PI_PACKAGE} 설치됨`);
+  else {
+    err(`${PI_PACKAGE} 미설치 — npm install -g @baryonlabs/cli`);
+    problems++;
+  }
+
+  // config?
+  if (hasConfig()) ok(`config 존재 → ${c.dim(BARYON_CONFIG)}`);
+  else {
+    warn("config 없음 — `baryon setup` 실행 필요");
+    problems++;
+  }
+
+  const cfg = loadConfig();
+  if (cfg.apiKey) ok(`API 키 설정됨 (${cfg.apiKey.slice(0, 4)}${"•".repeat(6)})`);
+  else warn("API 키 없음");
+
+  // pi provider registered?
+  if (piProviderConfigured()) ok(`pi 프로바이더 ${c.lime(PROVIDER)} 등록됨 → ${c.dim(PI_MODELS_JSON)}`);
+  else {
+    warn("pi 프로바이더 미등록 — `baryon setup` 실행");
+    problems++;
+  }
+
+  // connectivity
+  info(`연결 확인 중 → ${c.dim(cfg.baseUrl)}`);
+  const r = await ping(cfg.baseUrl, cfg.apiKey);
+  if (r.ok) ok(`baryon.ai 연결 정상 (HTTP ${r.status})`);
+  else if (r.status) warn(`엔드포인트 응답 HTTP ${r.status} — 키/권한 확인`);
+  else warn(`연결 불가 (${r.error}) — 오프라인이면 로컬 LLM 사용 가능`);
+
+  log(
+    problems === 0
+      ? `\n  ${sym.ok} ${c.teal("모든 점검 통과")}\n`
+      : `\n  ${sym.warn} ${c.yellow(`${problems}건 확인 필요`)}\n`,
+  );
+  return problems === 0 ? 0 : 1;
+}
+
+export async function models(args) {
+  const cfg = loadConfig();
+  // Delegate to pi's own --list-models so output matches the real catalog.
+  return runPi(["--list-models", ...args], cfg, { injectTargeting: false });
+}
+
+export async function configCmd(args) {
+  const flags = parseFlags(args);
+  if (flags.key || flags["api-key"] || flags["base-url"] || flags.model) {
+    const patch = {};
+    if (flags.key || flags["api-key"]) patch.apiKey = flags.key || flags["api-key"];
+    if (flags["base-url"]) patch.baseUrl = flags["base-url"];
+    if (flags.model) patch.defaultModel = flags.model;
+    saveConfig(patch);
+    ok("config 업데이트됨");
+    return 0;
+  }
+  const cfg = loadConfig();
+  banner();
+  log(c.bold("  현재 설정\n"));
+  info(`base URL    ${c.lime(cfg.baseUrl)}`);
+  info(`default     ${c.lime(cfg.defaultModel)}`);
+  info(`API key     ${cfg.apiKey ? cfg.apiKey.slice(0, 4) + "•".repeat(6) : c.dim("(없음)")}`);
+  info(`config 파일  ${c.dim(BARYON_CONFIG)}`);
+  info(`pi models   ${c.dim(PI_MODELS_JSON)}`);
+  log("");
+  return 0;
+}
+
+export function update() {
+  return new Promise((resolve) => {
+    log(`  ${sym.info} 업데이트: ${c.lime(`npm install -g @baryonlabs/cli ${PI_PACKAGE}`)}\n`);
+    const child = spawn(
+      "npm",
+      ["install", "-g", "@baryonlabs/cli", PI_PACKAGE],
+      { stdio: "inherit", shell: process.platform === "win32" },
+    );
+    child.on("exit", (code) => resolve(code ?? 0));
+    child.on("error", () => {
+      err("npm 실행 실패 — 수동으로 위 명령을 실행하세요.");
+      resolve(1);
+    });
+  });
+}
+
+export function help() {
+  banner();
+  log(`${c.bold("USAGE")}
+  ${c.lime("baryon")} ${c.dim("[options] [@files...] [messages...]")}     코딩 에이전트 시작 (baryon.ai 기본)
+
+${c.bold("COMMANDS")}
+  ${c.lime("baryon setup")}            baryon.ai API 키 등록 + pi 프로바이더 구성
+  ${c.lime("baryon config")}           현재 설정 보기 ${c.dim("(--key/--base-url/--model 로 변경)")}
+  ${c.lime("baryon models")}           사용 가능한 모델 목록
+  ${c.lime("baryon doctor")}           설치·연결 진단
+  ${c.lime("baryon update")}           CLI + pi 에이전트 업데이트
+  ${c.lime("baryon help")}             이 도움말
+
+${c.bold("EXAMPLES")}
+  ${c.dim("$")} baryon                              ${c.dim("# 대화형 시작")}
+  ${c.dim("$")} baryon -p "CSV 분석해 차트 만들어줘"   ${c.dim("# 단발 실행")}
+  ${c.dim("$")} baryon --provider openai            ${c.dim("# 다른 모델로 전환·비교")}
+  ${c.dim("$")} baryon --list-models                ${c.dim("# pi 패스스루")}
+
+${c.dim(`그 외 모든 옵션은 pi 에이전트로 그대로 전달됩니다.`)}
+${c.dim(`문서: ${HOMEPAGE} · 문의: ${SUPPORT_EMAIL}`)}
+`);
+  return 0;
+}
+
+/** Quiet first-run hint shown by postinstall (never fails the install). */
+export function welcome() {
+  if (!process.stdout.isTTY) return 0;
+  log(`\n${c.lime("✔")} ${c.bold("@baryonlabs/cli")} 설치 완료`);
+  log(`  ${c.dim("다음 단계:")} ${c.lime("baryon setup")} ${c.dim("→")} ${c.lime("baryon")}`);
+  log(`  ${c.dim(HOMEPAGE)}\n`);
+  return 0;
+}

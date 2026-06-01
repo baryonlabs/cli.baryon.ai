@@ -1,0 +1,22 @@
+{
+  "name": "cli.baryon.ai",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Baryon CLI homepage (cli.baryon.ai) + @baryonlabs/cli npm package",
+  "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "test": "npm test --workspace @baryonlabs/cli",
+    "cli": "node packages/cli/bin/baryon.js",
+    "serve": "node -e \"import('node:http').then(({default:h})=>import('node:fs').then(({default:f})=>h.createServer((q,s)=>{let p=q.url==='/'?'/index.html':q.url;try{s.end(f.readFileSync('docs'+p))}catch{s.statusCode=404;s.end('404')}}).listen(8080,()=>console.log('docs → http://localhost:8080'))))\""
+  },
+  "homepage": "https://cli.baryon.ai",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/baryonlabs/cli.baryon.ai.git"
+  },
+  "author": "Baryon Labs <support@baryon.ai>",
+  "license": "SEE LICENSE IN LICENSE"
+}

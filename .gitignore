@@ -1,0 +1,12 @@
+node_modules/
+*.log
+npm-debug.log*
+.DS_Store
+.env
+.env.*
+dist/
+coverage/
+*.tgz
+.pnpm-store/
+.idea/
+.vscode/
