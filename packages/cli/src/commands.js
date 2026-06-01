@@ -14,6 +14,8 @@ import {
   DEFAULT_BASE_URL,
   DEFAULT_MODELS,
   HOMEPAGE,
+  KEYS_URL,
+  KEY_PREFIX,
   PI_PACKAGE,
   PROVIDER,
   SUPPORT_EMAIL,
@@ -47,10 +49,15 @@ export async function setup(args) {
 
   let apiKey = flags.key || flags["api-key"] || process.env.BARYON_API_KEY || "";
   if (!apiKey) {
+    // Tell the user where keys come from before asking for one.
+    log(`  ${sym.info} 키 발급·관리: ${c.lime(KEYS_URL)}`);
+    log(`  ${c.dim(`   (vibecamp.us 대시보드에서 발급/회수 · 형식 ${KEY_PREFIX}…)`)}\n`);
     apiKey = await promptHidden(`  ${sym.info} baryon.ai API key: `);
   }
   if (!apiKey) {
     warn("API 키 없이 저장합니다. 나중에 `baryon setup --key <KEY>` 로 추가하세요.");
+  } else if (!apiKey.startsWith(KEY_PREFIX)) {
+    warn(`키 형식이 ${KEY_PREFIX}… 가 아닙니다. 로컬/상용 키라면 무시하세요.`);
   }
 
   saveConfig({ apiKey, baseUrl });
@@ -154,9 +161,34 @@ export async function configCmd(args) {
   info(`base URL    ${c.lime(cfg.baseUrl)}`);
   info(`default     ${c.lime(cfg.defaultModel)}`);
   info(`API key     ${cfg.apiKey ? cfg.apiKey.slice(0, 4) + "•".repeat(6) : c.dim("(없음)")}`);
+  info(`키 관리      ${c.lime(KEYS_URL)}`);
   info(`config 파일  ${c.dim(BARYON_CONFIG)}`);
   info(`pi models   ${c.dim(PI_MODELS_JSON)}`);
   log("");
+  return 0;
+}
+
+export function keys() {
+  log(`  ${sym.info} 키 발급·관리 (vibecamp.us 대시보드):`);
+  log(`     ${c.lime(KEYS_URL)}`);
+  log(`  ${c.dim(`   발급/회수/쿼터는 vibecamp.us 가 관리 · 형식 ${KEY_PREFIX}…`)}`);
+  log(`  ${c.dim("   발급 후:")} ${c.lime("baryon setup")} ${c.dim("또는")} ${c.lime("baryon config --key vc_live_…")}`);
+  // best-effort open in browser
+  const opener =
+    process.platform === "darwin"
+      ? "open"
+      : process.platform === "win32"
+        ? "start"
+        : "xdg-open";
+  try {
+    spawn(opener, [KEYS_URL], {
+      stdio: "ignore",
+      detached: true,
+      shell: process.platform === "win32",
+    }).unref();
+  } catch {
+    /* headless / no browser — link above is enough */
+  }
   return 0;
 }
 
@@ -183,6 +215,7 @@ export function help() {
 
 ${c.bold("COMMANDS")}
   ${c.lime("baryon setup")}            baryon.ai API 키 등록 + pi 프로바이더 구성
+  ${c.lime("baryon keys")}             키 발급·관리 대시보드 열기 ${c.dim("(vibecamp.us)")}
   ${c.lime("baryon config")}           현재 설정 보기 ${c.dim("(--key/--base-url/--model 로 변경)")}
   ${c.lime("baryon models")}           사용 가능한 모델 목록
   ${c.lime("baryon doctor")}           설치·연결 진단

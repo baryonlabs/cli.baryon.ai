@@ -6,6 +6,7 @@ import {
   doctor,
   models,
   configCmd,
+  keys,
   update,
   help,
   welcome,
@@ -47,6 +48,9 @@ async function main() {
       return models(rest);
     case "config":
       return configCmd(rest);
+    case "keys":
+    case "key":
+      return keys();
     case "update":
     case "upgrade":
       return update();

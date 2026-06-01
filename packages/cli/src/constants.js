@@ -49,3 +49,11 @@ export const DEFAULT_MODELS = [
 
 export const HOMEPAGE = "https://cli.baryon.ai";
 export const SUPPORT_EMAIL = "support@baryon.ai";
+
+/**
+ * Where end users issue / rotate / revoke their baryon.ai key.
+ * vibecamp.us is the source of truth for key issuance, scope, quota and
+ * revocation. Keys look like `vc_live_…`. Override with BARYON_KEYS_URL.
+ */
+export const KEYS_URL = process.env.BARYON_KEYS_URL || "https://vibecamp.us/dashboard";
+export const KEY_PREFIX = "vc_live_";
