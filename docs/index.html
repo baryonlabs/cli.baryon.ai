@@ -257,6 +257,13 @@ export BARYON_API_KEY=vc_live_xxxxx">복사</button></div>
 <span class="c-pr">$</span> baryon config --key <span class="c-st">vc_live_xxxxx</span>    <span class="c-cm"># 키만 갱신</span>
 <span class="c-pr">$</span> export BARYON_API_KEY=<span class="c-st">vc_live_xxxxx</span>   <span class="c-cm"># 환경변수로 주입(CI 등)</span></code></pre>
       </div>
+
+      <h3>웹에서 인증 → 키 발급 → 로그 확인</h3>
+      <p>학생은 <code>chat.baryon.ai/prj/&lt;분반 토큰&gt;</code> 에서 <b>좌석 선택 → 이메일 OTP 로그인</b> 후, 대시보드에서 본인 <b>CLI 키</b>를 받아 복사하고(같은 좌석으로 chat·CLI·API 사용), 사용량·활동 로그를 함께 확인합니다.</p>
+      <figure style="margin:14px 0">
+        <img src="/assets/webui-cli-key-log.png" alt="웹 로그인 후 대시보드에서 CLI 키를 발급받고 사용량·로그를 확인하는 실제 화면" loading="lazy" style="width:100%;border:1px solid var(--line);border-radius:12px;display:block" />
+        <figcaption class="mono" style="font-size:11px;color:var(--ink-dim);margin-top:6px">실제 화면 · 인증 후 대시보드 — “내 좌석 키” + 사용량·활동 로그</figcaption>
+      </figure>
     </section>
 
     <!-- COMMANDS -->
@@ -380,6 +387,7 @@ baryon config --model baryon-coder">복사</button></div>
         <img src="/assets/websearrch-report.png" alt="웹 검색으로 사실을 검증한 뒤 보고서를 생성한 실제 실행 화면" loading="lazy" style="width:100%;border:1px solid var(--line);border-radius:12px;display:block" />
         <figcaption class="mono" style="font-size:11px;color:var(--ink-dim);margin-top:6px">실제 실행 화면 · web_search + web_fetch → fibonacci_report.html</figcaption>
       </figure>
+      <p><a class="btn primary" href="/examples/fibonacci-report.html" target="_blank" rel="noopener" style="text-decoration:none">실제 산출물 보기 — 피보나치 분석 보고서 ↗</a> <span class="mono" style="font-size:11.5px;color:var(--ink-dim)">· 에이전트가 생성한 HTML을 그대로 게시(miri.dev로도 1-클릭 배포)</span></p>
     </section>
 
     <!-- MODES -->
