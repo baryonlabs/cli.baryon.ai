@@ -11,6 +11,8 @@ import {
   PI_AGENT_DIR,
   PI_MODELS_JSON,
   PROVIDER,
+  SESSION_HEADER,
+  SESSION_ID_ENV,
 } from "./constants.js";
 
 function readJson(file, fallback) {
@@ -69,6 +71,9 @@ export function syncPiModels({ baseUrl, models }) {
     api: "openai-completions",
     apiKey: `$${API_KEY_ENV}`,
     authHeader: true,
+    // Per-launch session id (resolved by pi from the env at request time) so the
+    // gateway can group a run's turns into one session. Gateway requires it.
+    headers: { [SESSION_HEADER]: `$${SESSION_ID_ENV}` },
     models:
       Array.isArray(models) && models.length ? models : DEFAULT_MODELS,
   };
@@ -81,6 +86,21 @@ export function syncPiModels({ baseUrl, models }) {
 export function piProviderConfigured() {
   const root = readJson(PI_MODELS_JSON, {});
   return Boolean(root?.providers?.[PROVIDER]);
+}
+
+/**
+ * Auto-heal older installs: ensure the baryon provider sends the session
+ * header. Safe to call on every launch — only writes when something changed.
+ * Returns true if the provider exists (after any patch).
+ */
+export function ensurePiSessionHeader() {
+  const root = readJson(PI_MODELS_JSON, {});
+  const p = root?.providers?.[PROVIDER];
+  if (!p) return false;
+  if (p.headers?.[SESSION_HEADER] === `$${SESSION_ID_ENV}`) return true;
+  p.headers = { ...(p.headers || {}), [SESSION_HEADER]: `$${SESSION_ID_ENV}` };
+  writeJson(PI_MODELS_JSON, root);
+  return true;
 }
 
 export { PI_MODELS_JSON, BARYON_CONFIG };

@@ -11,6 +11,14 @@ export const DEFAULT_BASE_URL =
 /** Env var pi resolves at request time (apiKey: "$BARYON_API_KEY"). */
 export const API_KEY_ENV = "BARYON_API_KEY";
 
+/**
+ * Session id env var. The baryon provider sends it as `X-Baryon-Session` so the
+ * gateway can group every turn of one `baryon` run into a single session. A
+ * fresh id is minted per launch (see pi.js). The gateway requires it.
+ */
+export const SESSION_ID_ENV = "BARYON_SESSION_ID";
+export const SESSION_HEADER = "X-Baryon-Session";
+
 /** Underlying coding agent package + binary. */
 export const PI_PACKAGE = "@earendil-works/pi-coding-agent";
 export const PI_BIN = "pi";

@@ -60,6 +60,8 @@ test("syncPiModels preserves existing providers", async () => {
     const out = JSON.parse(fs.readFileSync(path.join(dir, "models.json"), "utf8"));
     if (!out.providers.ollama) throw new Error("dropped ollama");
     if (!out.providers.baryon) throw new Error("missing baryon");
+    if (out.providers.baryon.headers["X-Baryon-Session"] !== "$BARYON_SESSION_ID")
+      throw new Error("missing session header");
     console.log("OK");
   `;
   const r = spawnSync(process.execPath, ["--input-type=module", "-e", script], {

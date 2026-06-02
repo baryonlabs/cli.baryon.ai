@@ -3,6 +3,7 @@
 import { spawn } from "node:child_process";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
+import { randomUUID } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import {
@@ -10,7 +11,9 @@ import {
   PI_BIN,
   PI_PACKAGE,
   PROVIDER,
+  SESSION_ID_ENV,
 } from "./constants.js";
+import { ensurePiSessionHeader } from "./config.js";
 
 const require = createRequire(import.meta.url);
 
@@ -97,6 +100,11 @@ export function runPi(args, config, { injectTargeting = true } = {}) {
   const env = { ...process.env };
   if (config.apiKey) env[API_KEY_ENV] = config.apiKey;
   if (config.baseUrl) env.BARYON_BASE_URL = config.baseUrl;
+
+  // One session per launch: mint an id (unless the caller pinned one) and make
+  // sure the provider forwards it. The gateway requires a session id.
+  if (!env[SESSION_ID_ENV]) env[SESSION_ID_ENV] = `cli_${randomUUID()}`;
+  ensurePiSessionHeader();
 
   return new Promise((resolve, reject) => {
     const child = spawn(process.execPath, [entry, ...finalArgs], {
