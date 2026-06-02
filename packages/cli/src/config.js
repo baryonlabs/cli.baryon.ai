@@ -13,7 +13,15 @@ import {
   PROVIDER,
   SESSION_HEADER,
   SESSION_ID_ENV,
+  CLIENT_HEADER,
+  CLIENT_ENV,
 } from "./constants.js";
+
+/** Headers the baryon provider must always send (resolved by pi from env). */
+const PROVIDER_HEADERS = {
+  [SESSION_HEADER]: `$${SESSION_ID_ENV}`,
+  [CLIENT_HEADER]: `$${CLIENT_ENV}`,
+};
 
 function readJson(file, fallback) {
   try {
@@ -71,9 +79,10 @@ export function syncPiModels({ baseUrl, models }) {
     api: "openai-completions",
     apiKey: `$${API_KEY_ENV}`,
     authHeader: true,
-    // Per-launch session id (resolved by pi from the env at request time) so the
-    // gateway can group a run's turns into one session. Gateway requires it.
-    headers: { [SESSION_HEADER]: `$${SESSION_ID_ENV}` },
+    // Per-launch session id + client version (resolved by pi from env at request
+    // time): the gateway groups a run's turns into one session and enforces a
+    // minimum CLI version. Both are required by the gateway.
+    headers: { ...PROVIDER_HEADERS },
     models:
       Array.isArray(models) && models.length ? models : DEFAULT_MODELS,
   };
@@ -89,16 +98,19 @@ export function piProviderConfigured() {
 }
 
 /**
- * Auto-heal older installs: ensure the baryon provider sends the session
- * header. Safe to call on every launch — only writes when something changed.
- * Returns true if the provider exists (after any patch).
+ * Auto-heal older installs: ensure the baryon provider sends the session +
+ * client-version headers. Safe to call on every launch — only writes when
+ * something changed. Returns true if the provider exists (after any patch).
  */
 export function ensurePiSessionHeader() {
   const root = readJson(PI_MODELS_JSON, {});
   const p = root?.providers?.[PROVIDER];
   if (!p) return false;
-  if (p.headers?.[SESSION_HEADER] === `$${SESSION_ID_ENV}`) return true;
-  p.headers = { ...(p.headers || {}), [SESSION_HEADER]: `$${SESSION_ID_ENV}` };
+  const need = Object.entries(PROVIDER_HEADERS).some(
+    ([k, v]) => p.headers?.[k] !== v,
+  );
+  if (!need) return true;
+  p.headers = { ...(p.headers || {}), ...PROVIDER_HEADERS };
   writeJson(PI_MODELS_JSON, root);
   return true;
 }

@@ -12,6 +12,8 @@ import {
   PI_PACKAGE,
   PROVIDER,
   SESSION_ID_ENV,
+  CLIENT_ENV,
+  CLIENT_VERSION,
 } from "./constants.js";
 import { ensurePiSessionHeader } from "./config.js";
 
@@ -102,8 +104,10 @@ export function runPi(args, config, { injectTargeting = true } = {}) {
   if (config.baseUrl) env.BARYON_BASE_URL = config.baseUrl;
 
   // One session per launch: mint an id (unless the caller pinned one) and make
-  // sure the provider forwards it. The gateway requires a session id.
+  // sure the provider forwards it + this CLI's version. The gateway requires a
+  // session id and enforces a minimum CLI version.
   if (!env[SESSION_ID_ENV]) env[SESSION_ID_ENV] = `cli_${randomUUID()}`;
+  env[CLIENT_ENV] = `baryon-cli/${CLIENT_VERSION}`;
   ensurePiSessionHeader();
 
   return new Promise((resolve, reject) => {

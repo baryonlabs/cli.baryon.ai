@@ -14,9 +14,23 @@ import {
 } from "../src/commands.js";
 import { loadConfig, piProviderConfigured, hasConfig } from "../src/config.js";
 import { runPi, resolvePiEntry } from "../src/pi.js";
+import { checkLatest } from "../src/api.js";
 import { spawnSync } from "node:child_process";
 import { createRequire } from "node:module";
 import { c, err, log, sym } from "../src/ui.js";
+
+/** Best-effort: warn loudly when a newer CLI exists. The gateway enforces the
+ *  minimum version (426), so cloud use is blocked until you update; this is the
+ *  friendly heads-up. Silent when offline / opted out. */
+async function warnIfOutdated() {
+  const r = await checkLatest();
+  if (r?.outdated) {
+    log(
+      `\n  ${sym.warn} ${c.yellow(`업데이트 필요: @baryonlabs/cli ${r.current} → ${r.latest}`)}\n` +
+        `  ${c.dim("baryon.ai 사용에 최신 버전이 필요합니다.")} ${c.lime("baryon update")} ${c.dim("를 실행하세요.\n")}`,
+    );
+  }
+}
 
 const require = createRequire(import.meta.url);
 
@@ -87,6 +101,7 @@ async function main() {
         );
         return 1;
       }
+      await warnIfOutdated();
       const cfg = loadConfig();
       return runPi(argv, cfg);
     }

@@ -445,6 +445,9 @@ baryon config --model baryon-coder">복사</button></div>
         <tr><th>증상</th><th>원인 · 해결</th></tr>
         <tr><td><code>command not found: baryon</code></td><td>전역 bin 경로 누락. 설치 재시도 또는 <code>npm bin -g</code> 경로를 PATH 에 추가.</td></tr>
         <tr><td><code>404 Not Found … @baryonlabs/cli</code></td><td>오래된 npm 캐시. <code>npm install -g @baryonlabs/cli@latest</code>.</td></tr>
+        <tr><td><code>426 upgrade_required</code></td><td>CLI 구버전. baryon.ai 사용에는 <b>항상 최신 버전</b>이 필요합니다. <code>baryon update</code> (또는 <code>npm i -g @baryonlabs/cli@latest</code>).</td></tr>
+        <tr><td><code>400 session_required</code></td><td>세션 없이 호출됨. 최신 CLI 는 자동 처리합니다 — <code>baryon update</code> 후 재실행.</td></tr>
+        <tr><td><code>429 rate_limit_error</code></td><td>분당 요청 한도 초과(프로젝트·좌석별). 잠시 후 재시도하거나 관리자에게 한도 상향 요청.</td></tr>
         <tr><td><code>401 Invalid API key</code></td><td>키가 만료·회수됨. <code>baryon keys</code> 에서 재발급 후 <code>baryon config --key …</code>.</td></tr>
         <tr><td>연결 실패 / <code>fetch failed</code></td><td>엔드포인트 불가. <code>baryon config --base-url</code> 확인, 또는 로컬 LLM 사용. (백엔드 준비 중일 수 있음)</td></tr>
         <tr><td>Node 22 미만</td><td><a href="https://nodejs.org" target="_blank" rel="noopener" style="color:var(--teal)">nodejs.org</a> 에서 22 이상으로 업그레이드.</td></tr>

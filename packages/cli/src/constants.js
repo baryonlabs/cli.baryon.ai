@@ -1,5 +1,16 @@
 import os from "node:os";
 import path from "node:path";
+import { createRequire } from "node:module";
+
+/** This CLI's version (from package.json). Sent to the gateway for the
+ *  minimum-version gate, so old clients are forced to update. */
+export const CLIENT_VERSION = (() => {
+  try {
+    return createRequire(import.meta.url)("../package.json").version;
+  } catch {
+    return "0.0.0";
+  }
+})();
 
 /** Provider id registered inside pi's models.json */
 export const PROVIDER = "baryon";
@@ -18,6 +29,14 @@ export const API_KEY_ENV = "BARYON_API_KEY";
  */
 export const SESSION_ID_ENV = "BARYON_SESSION_ID";
 export const SESSION_HEADER = "X-Baryon-Session";
+
+/**
+ * Client-identity header. The baryon provider sends `baryon-cli/<version>` so
+ * the gateway can enforce a minimum CLI version (BARYON_MIN_CLI_VERSION). The
+ * value is resolved per launch from BARYON_CLIENT (see pi.js).
+ */
+export const CLIENT_ENV = "BARYON_CLIENT";
+export const CLIENT_HEADER = "X-Baryon-Client";
 
 /** Underlying coding agent package + binary. */
 export const PI_PACKAGE = "@earendil-works/pi-coding-agent";

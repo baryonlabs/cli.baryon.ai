@@ -62,6 +62,8 @@ test("syncPiModels preserves existing providers", async () => {
     if (!out.providers.baryon) throw new Error("missing baryon");
     if (out.providers.baryon.headers["X-Baryon-Session"] !== "$BARYON_SESSION_ID")
       throw new Error("missing session header");
+    if (out.providers.baryon.headers["X-Baryon-Client"] !== "$BARYON_CLIENT")
+      throw new Error("missing client header");
     console.log("OK");
   `;
   const r = spawnSync(process.execPath, ["--input-type=module", "-e", script], {

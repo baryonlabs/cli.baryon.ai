@@ -1,6 +1,6 @@
 // Built-in baryon subcommands. Anything not matched here is passed to pi.
 import { spawn } from "node:child_process";
-import { discoverModels, ping } from "./api.js";
+import { checkLatest, discoverModels, ping } from "./api.js";
 import {
   hasConfig,
   loadConfig,
@@ -123,6 +123,15 @@ export async function doctor() {
   const cfg = loadConfig();
   if (cfg.apiKey) ok(`API 키 설정됨 (${cfg.apiKey.slice(0, 4)}${"•".repeat(6)})`);
   else warn("API 키 없음");
+
+  // CLI version currency (best-effort; silent offline)
+  const ver = await checkLatest();
+  if (ver?.outdated) {
+    warn(`CLI 구버전 ${ver.current} — 최신 ${ver.latest}. baryon.ai 사용에 업데이트 필요 (\`baryon update\`)`);
+    problems++;
+  } else if (ver) {
+    ok(`CLI 최신 버전 (${ver.current})`);
+  }
 
   // pi provider registered?
   if (piProviderConfigured()) ok(`pi 프로바이더 ${c.lime(PROVIDER)} 등록됨 → ${c.dim(PI_MODELS_JSON)}`);

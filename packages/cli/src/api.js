@@ -1,8 +1,49 @@
 // Minimal baryon.ai (OpenAI-compatible) helpers: model discovery + reachability.
-import { DEFAULT_MODELS } from "./constants.js";
+import { CLIENT_VERSION, DEFAULT_MODELS } from "./constants.js";
 
 function joinUrl(base, suffix) {
   return base.replace(/\/+$/, "") + suffix;
+}
+
+/** Compare two semver strings. -1 / 0 / 1, prerelease-insensitive. */
+function cmpSemver(a, b) {
+  const pa = String(a).split("-")[0].split(".").map(Number);
+  const pb = String(b).split("-")[0].split(".").map(Number);
+  for (let i = 0; i < 3; i++) {
+    const x = pa[i] || 0;
+    const y = pb[i] || 0;
+    if (x !== y) return x < y ? -1 : 1;
+  }
+  return 0;
+}
+
+/**
+ * Best-effort latest-version check against the npm registry. Returns
+ * { current, latest, outdated } or null on any failure (offline / 폐쇄망 /
+ * timeout / opt-out via BARYON_SKIP_UPDATE_CHECK). Never throws.
+ */
+export async function checkLatest({ timeoutMs = 2500 } = {}) {
+  if (process.env.BARYON_SKIP_UPDATE_CHECK) return null;
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), timeoutMs);
+  try {
+    const res = await fetch(
+      "https://registry.npmjs.org/@baryonlabs/cli/latest",
+      { signal: ctrl.signal, headers: { accept: "application/json" } },
+    );
+    if (!res.ok) return null;
+    const latest = (await res.json())?.version;
+    if (!latest) return null;
+    return {
+      current: CLIENT_VERSION,
+      latest,
+      outdated: cmpSemver(CLIENT_VERSION, latest) < 0,
+    };
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(t);
+  }
 }
 
 /**
