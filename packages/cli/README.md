@@ -56,6 +56,8 @@ baryon --provider openai                       # 다른 모델로 전환·비교
 - **인터랙티브 셸** ([pi-interactive-shell](https://github.com/nicobailon/pi-interactive-shell))
 - **웹 액세스** ([pi-web-access](https://github.com/nicobailon/pi-web-access))
 - **웹 페치** ([pi-web-fetch](https://github.com/georgebashi/pi-web-fetch))
+- **웹 검색** ([pi-search](https://github.com/buddingnewinsights/pi-search))
+- **병렬 웹 검색** ([pi-parallel-web-search](https://github.com/philipp-spiess/pi-parallel-web-search))
 
 ## 설정
 

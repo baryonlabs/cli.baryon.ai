@@ -57,7 +57,9 @@ export const DEFAULT_EXTENSIONS = [
   { name: "pi-canvas", src: "https://github.com/jyaunches/pi-canvas", note: "캔버스" },
   { name: "pi-interactive-shell", src: "https://github.com/nicobailon/pi-interactive-shell", note: "인터랙티브 셸" },
   { name: "pi-web-access", src: "https://github.com/nicobailon/pi-web-access", note: "웹 액세스(브라우징)" },
-  { name: "pi-web-fetch", src: "https://github.com/georgebashi/pi-web-fetch", note: "웹 페치" }
+  { name: "pi-web-fetch", src: "https://github.com/georgebashi/pi-web-fetch", note: "웹 페치" },
+  { name: "pi-search", src: "https://github.com/buddingnewinsights/pi-search", note: "웹 검색" },
+  { name: "pi-parallel-web-search", src: "https://github.com/philipp-spiess/pi-parallel-web-search", note: "병렬 웹 검색" }
 ];
 
 export const HOMEPAGE = "https://cli.baryon.ai";
