@@ -34,6 +34,7 @@ curl -fsSL https://cli.baryon.ai/install.sh | sh
 | `baryon setup` | API 키 등록 + pi 프로바이더 구성 |
 | `baryon config` | 현재 설정 보기 (`--key`, `--base-url`, `--model` 로 변경) |
 | `baryon models` | 사용 가능한 모델 목록 (`pi --list-models` 패스스루) |
+| `baryon extensions` | 기본 확장 설치(서브에이전트·캔버스·셸·웹), `list` 로 목록 |
 | `baryon doctor` | 설치·연결 진단 |
 | `baryon update` | CLI + pi 에이전트 업데이트 |
 | `baryon help` | 도움말 |
@@ -45,6 +46,16 @@ baryon -p "이 CSV를 분석해 차트를 만들어줘"   # 단발 실행
 baryon @report.md "요약해줘"                  # 파일 첨부
 baryon --provider openai                       # 다른 모델로 전환·비교
 ```
+
+## 기본 탑재 확장
+
+`baryon setup` 시 아래 pi 확장이 자동 설치되어 바로 쓸 수 있습니다(`--no-extensions` 로 건너뛰기, `baryon extensions` 로 재설치):
+
+- **서브에이전트** — 작업 분해·위임·통합 ([pi-subagents](https://github.com/nicobailon/pi-subagents))
+- **캔버스** ([pi-canvas](https://github.com/jyaunches/pi-canvas))
+- **인터랙티브 셸** ([pi-interactive-shell](https://github.com/nicobailon/pi-interactive-shell))
+- **웹 액세스** ([pi-web-access](https://github.com/nicobailon/pi-web-access))
+- **웹 페치** ([pi-web-fetch](https://github.com/georgebashi/pi-web-fetch))
 
 ## 설정
 

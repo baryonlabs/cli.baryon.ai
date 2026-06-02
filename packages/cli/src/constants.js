@@ -47,6 +47,19 @@ export const DEFAULT_MODELS = [
   },
 ];
 
+/**
+ * Extensions installed by default so `baryon` ships with sub-agents, a canvas,
+ * an interactive shell, and web access/fetch out of the box. Installed via
+ * `pi install <src>` into ~/.pi/agent/settings.json (loaded on startup).
+ */
+export const DEFAULT_EXTENSIONS = [
+  { name: "pi-subagents", src: "https://github.com/nicobailon/pi-subagents", note: "서브에이전트(작업 분해·위임·통합)" },
+  { name: "pi-canvas", src: "https://github.com/jyaunches/pi-canvas", note: "캔버스" },
+  { name: "pi-interactive-shell", src: "https://github.com/nicobailon/pi-interactive-shell", note: "인터랙티브 셸" },
+  { name: "pi-web-access", src: "https://github.com/nicobailon/pi-web-access", note: "웹 액세스(브라우징)" },
+  { name: "pi-web-fetch", src: "https://github.com/georgebashi/pi-web-fetch", note: "웹 페치" }
+];
+
 export const HOMEPAGE = "https://cli.baryon.ai";
 export const SUPPORT_EMAIL = "support@baryon.ai";
 

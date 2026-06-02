@@ -7,6 +7,7 @@ import {
   models,
   configCmd,
   keys,
+  extensions,
   update,
   help,
   welcome,
@@ -51,6 +52,9 @@ async function main() {
     case "keys":
     case "key":
       return keys();
+    case "extensions":
+    case "ext":
+      return extensions(rest);
     case "update":
     case "upgrade":
       return update();

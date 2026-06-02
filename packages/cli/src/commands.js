@@ -10,8 +10,10 @@ import {
   BARYON_CONFIG,
   PI_MODELS_JSON,
 } from "./config.js";
+import { spawnSync } from "node:child_process";
 import {
   DEFAULT_BASE_URL,
+  DEFAULT_EXTENSIONS,
   DEFAULT_MODELS,
   HOMEPAGE,
   KEYS_URL,
@@ -79,6 +81,12 @@ export async function setup(args) {
   saveConfig({ defaultModel: models[0].id });
   const file = syncPiModels({ baseUrl, models });
   ok(`pi 프로바이더 ${c.lime(PROVIDER)} 구성 → ${c.dim(file)}`);
+
+  if (flags["no-extensions"]) {
+    info("기본 확장 설치 건너뜀 (--no-extensions)");
+  } else {
+    installDefaults();
+  }
 
   log(`\n  ${sym.ok} 준비 완료. ${c.lime("baryon")} 으로 시작하세요.\n`);
   return 0;
@@ -208,6 +216,46 @@ export function update() {
   });
 }
 
+export function installDefaults() {
+  const entry = resolvePiEntry();
+
+  if (!entry) {
+    warn(`${PI_PACKAGE} 미설치 — 확장 건너뜀`);
+    return 0;
+  }
+
+  log(`  ${sym.info} 기본 확장 설치 중 (${DEFAULT_EXTENSIONS.length}종 · git clone, 잠시 걸립니다)…`);
+  let okc = 0;
+
+  for (const e of DEFAULT_EXTENSIONS) {
+    const r = spawnSync(process.execPath, [entry, "install", e.src], { encoding: "utf8" });
+
+    if (r.status === 0) {
+      ok(`${e.name} — ${e.note}`);
+      okc++;
+    } else {
+      warn(`${e.name} 설치 실패(네트워크/git 확인) — 건너뜀`);
+    }
+  }
+
+  log(`  ${sym.ok} 확장 ${okc}/${DEFAULT_EXTENSIONS.length} 설치`);
+  return okc;
+}
+
+export function extensions(args) {
+  const sub = args[0];
+
+  if (sub === "list" || sub === "ls") {
+    return runPi(["list"], loadConfig(), { injectTargeting: false })
+  }
+
+  banner();
+  log(c.bold("  Baryon 기본 확장\n"));
+  installDefaults()
+  log(`\n  ${sym.info} 목록: ${c.lime("baryon extensions list")} · 제거: ${c.lime("baryon -- remove <src>")}\n`)
+  return 0;
+}
+
 export function help() {
   banner();
   log(`${c.bold("USAGE")}
@@ -218,6 +266,7 @@ ${c.bold("COMMANDS")}
   ${c.lime("baryon keys")}             키 발급·관리 대시보드 열기 ${c.dim("(vibecamp.us)")}
   ${c.lime("baryon config")}           현재 설정 보기 ${c.dim("(--key/--base-url/--model 로 변경)")}
   ${c.lime("baryon models")}           사용 가능한 모델 목록
+  ${c.lime("baryon extensions")}       기본 확장 설치(서브에이전트·캔버스·셸·웹) ${c.dim("· list 로 목록")}
   ${c.lime("baryon doctor")}           설치·연결 진단
   ${c.lime("baryon update")}           CLI + pi 에이전트 업데이트
   ${c.lime("baryon help")}             이 도움말
