@@ -6,7 +6,7 @@
 
 <p align="center">
   <b>Baryon CLI</b> — AI 코딩·학습 에이전트. 한 줄 설치 · baryon.ai API 기본 연결 · 상용/로컬 모델 전환<br>
-  교육기관 납품용 · <a href="https://cli.baryon.ai">cli.baryon.ai</a>
+  교육기관 · 기업 사내 AI 인프라(온프레미스) 구축용 · <a href="https://cli.baryon.ai">cli.baryon.ai</a>
 </p>
 
 <p align="center">

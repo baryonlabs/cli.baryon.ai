@@ -2,7 +2,7 @@
 
 > Baryon CLI — **AI 코딩·학습 에이전트**. `baryon.ai` API에 기본 연결된 [pi](https://www.npmjs.com/package/@earendil-works/pi-coding-agent) 코딩 에이전트 래퍼.
 
-한 줄 설치, 별도 키 설정 없이 시작, 상용·로컬 모델 무중단 전환. 교육기관 납품용으로 설계되었습니다.
+한 줄 설치, 별도 키 설정 없이 시작, 상용·로컬 모델 무중단 전환. 교육기관 및 기업 사내 AI 인프라(온프레미스) 구축용으로 설계되었습니다.
 
 ```bash
 npm install -g @baryonlabs/cli   # 또는 pnpm / yarn / bun
