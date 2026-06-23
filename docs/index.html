@@ -220,6 +220,39 @@
       </div>
       <p>Node 버전·패키지 매니저를 자동 감지해 설치합니다. 설치 후 <code>baryon doctor</code> 로 환경을 점검하세요.</p>
       <div class="note"><span class="lbl">검증</span><code>baryon --version</code> 으로 CLI/pi 버전을, <code>baryon doctor</code> 로 Node·pi·키·연결을 한 번에 확인합니다.</div>
+
+      <h3>Windows 최초 설치 (Node.js가 없다면)</h3>
+      <p class="sub">Windows는 보통 Node.js가 없습니다. <b>PowerShell을 “관리자 권한”으로 실행</b>한 뒤 아래를 위에서부터 복사·붙여넣기 하세요. (Chocolatey 패키지 매니저로 Node를 설치하는 방법)</p>
+      <div class="code">
+        <div class="code-bar"><i></i><i></i><i></i><span>PowerShell (관리자)</span><button class="copy" data-copy="Set-ExecutionPolicy Unrestricted -Scope Process -Force
+irm https://community.chocolatey.org/install.ps1 | iex
+choco install nodejs-lts --version=&quot;24&quot; -y
+node -v
+npm -v
+npm install -g @baryonlabs/cli
+baryon setup --base-url https://api.baryon.ai/v1 --key vc_live_여기에키
+baryon doctor">복사</button></div>
+        <pre><code><span class="c-cm"># 0) 실행이 막히면 먼저 (현재 세션 한정, 안전)</span>
+<span class="c-pr">PS&gt;</span> Set-ExecutionPolicy Unrestricted -Scope Process -Force
+
+<span class="c-cm"># 1) Chocolatey 설치</span>
+<span class="c-pr">PS&gt;</span> irm <span class="c-st">https://community.chocolatey.org/install.ps1</span> | iex
+
+<span class="c-cm"># 2) Node.js LTS 설치 (PowerShell 새 창으로 다시 열기)</span>
+<span class="c-pr">PS&gt;</span> choco install <span class="c-hl">nodejs-lts</span> --version=<span class="c-st">"24"</span> -y
+
+<span class="c-cm"># 3) 버전 확인 — v24.x / 11.x 가 나오면 OK</span>
+<span class="c-pr">PS&gt;</span> node -v
+<span class="c-pr">PS&gt;</span> npm -v
+
+<span class="c-cm"># 4) Baryon CLI 설치 + 연결</span>
+<span class="c-pr">PS&gt;</span> npm install -g <span class="c-hl">@baryonlabs/cli</span>
+<span class="c-pr">PS&gt;</span> baryon setup --base-url <span class="c-st">https://api.baryon.ai/v1</span> --key <span class="c-st">vc_live_…</span>
+<span class="c-pr">PS&gt;</span> baryon doctor</code></pre>
+      </div>
+      <div class="note"><span class="lbl">git</span>확장 설치에 <b>git</b>이 필요합니다. 없다면 <code>choco install git -y</code> 로 함께 설치하세요. (관리자 PowerShell)</div>
+      <div class="note warn"><span class="lbl">충돌 오류</span>이전 버전에서 <code>Tool "web_fetch" conflicts …</code> 오류가 났다면, <b>CLI를 최신으로 올리고 setup을 다시 실행</b>하면 자동 복구됩니다:<br>
+        <code>npm install -g @baryonlabs/cli@latest</code> → <code>baryon setup --base-url https://api.baryon.ai/v1 --key vc_live_…</code></div>
     </section>
 
     <!-- QUICK START -->
