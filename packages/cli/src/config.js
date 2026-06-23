@@ -10,6 +10,7 @@ import {
   DEFAULT_MODELS,
   PI_AGENT_DIR,
   PI_MODELS_JSON,
+  PI_SETTINGS_JSON,
   PROVIDER,
   SESSION_HEADER,
   SESSION_ID_ENV,
@@ -113,6 +114,46 @@ export function ensurePiSessionHeader() {
   p.headers = { ...(p.headers || {}), ...PROVIDER_HEADERS };
   writeJson(PI_MODELS_JSON, root);
   return true;
+}
+
+/**
+ * Self-heal installs broken by a deprecated extension: drop its URL from pi's
+ * settings.json `packages` list and remove the cloned dir so pi stops loading
+ * it. Pure fs/JSON → works identically on macOS/Linux/Windows. Returns the list
+ * of names actually removed.
+ */
+export function prunePiPackages(deprecated) {
+  const removed = [];
+  const srcs = new Set(deprecated.map((d) => d.src));
+
+  // 1) drop from settings.json packages[]
+  try {
+    const s = readJson(PI_SETTINGS_JSON, null);
+    if (s && Array.isArray(s.packages)) {
+      const kept = s.packages.filter((u) => !srcs.has(u));
+      if (kept.length !== s.packages.length) {
+        s.packages = kept;
+        writeJson(PI_SETTINGS_JSON, s);
+      }
+    }
+  } catch {
+    /* settings missing/unreadable — nothing to prune */
+  }
+
+  // 2) remove the cloned extension directory (git/github.com/<owner>/<name>)
+  for (const d of deprecated) {
+    const dir = path.join(PI_AGENT_DIR, "git", "github.com", d.owner, d.name);
+    try {
+      if (fs.existsSync(dir)) {
+        fs.rmSync(dir, { recursive: true, force: true });
+        removed.push(d.name);
+      }
+    } catch {
+      /* best-effort */
+    }
+  }
+
+  return removed;
 }
 
 export { PI_MODELS_JSON, BARYON_CONFIG };

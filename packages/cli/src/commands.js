@@ -5,6 +5,7 @@ import {
   hasConfig,
   loadConfig,
   piProviderConfigured,
+  prunePiPackages,
   saveConfig,
   syncPiModels,
   BARYON_CONFIG,
@@ -15,6 +16,7 @@ import {
   DEFAULT_BASE_URL,
   DEFAULT_EXTENSIONS,
   DEFAULT_MODELS,
+  DEPRECATED_EXTENSIONS,
   HOMEPAGE,
   KEYS_URL,
   KEY_PREFIX,
@@ -232,6 +234,12 @@ export function installDefaults() {
     warn(`${PI_PACKAGE} 미설치 — 확장 건너뜀`);
     return 0;
   }
+
+  // Self-heal machines broken by a previously-shipped conflicting extension
+  // (e.g. pi-search ↔ pi-web-fetch both registering `web_fetch`, which hard-fails
+  // every run). Remove them from pi's registry + disk before (re)installing.
+  const pruned = prunePiPackages(DEPRECATED_EXTENSIONS);
+  if (pruned.length) warn(`충돌 확장 제거: ${pruned.join(", ")} (자가 치유)`);
 
   log(`  ${sym.info} 기본 확장 설치 중 (${DEFAULT_EXTENSIONS.length}종 · git clone, 잠시 걸립니다)…`);
   let okc = 0;

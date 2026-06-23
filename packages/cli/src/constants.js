@@ -49,6 +49,8 @@ export const BARYON_CONFIG = path.join(BARYON_DIR, "config.json");
 /** pi's custom-provider/model registry. */
 export const PI_AGENT_DIR = path.join(os.homedir(), ".pi", "agent");
 export const PI_MODELS_JSON = path.join(PI_AGENT_DIR, "models.json");
+/** pi's extension registry — a `{ packages: [<git url>, …] }` list loaded on startup. */
+export const PI_SETTINGS_JSON = path.join(PI_AGENT_DIR, "settings.json");
 
 /**
  * Fallback model catalog used when /models discovery is unavailable
@@ -92,6 +94,18 @@ export const DEFAULT_EXTENSIONS = [
   { name: "pi-interactive-shell", src: "https://github.com/nicobailon/pi-interactive-shell", note: "인터랙티브 셸" },
   { name: "pi-web-access", src: "https://github.com/nicobailon/pi-web-access", note: "웹 액세스(브라우징·검색·페치)" },
   { name: "pi-parallel-web-search", src: "https://github.com/philipp-spiess/pi-parallel-web-search", note: "병렬 웹 검색" }
+];
+
+/**
+ * Extensions previously shipped as defaults that BREAK startup and must be
+ * actively removed from existing installs (settings.json + cloned dir):
+ *  - pi-web-fetch: `web_fetch` collides with pi-search; also needs puppeteer.
+ *  - pi-search: `web_fetch` collision; superseded by pi-web-access.
+ * `baryon setup` self-heals an already-broken machine by pruning these.
+ */
+export const DEPRECATED_EXTENSIONS = [
+  { name: "pi-web-fetch", src: "https://github.com/georgebashi/pi-web-fetch", owner: "georgebashi" },
+  { name: "pi-search", src: "https://github.com/buddingnewinsights/pi-search", owner: "buddingnewinsights" }
 ];
 
 export const HOMEPAGE = "https://cli.baryon.ai";
