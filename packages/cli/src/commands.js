@@ -237,9 +237,19 @@ export function installDefaults() {
   let okc = 0;
 
   for (const e of DEFAULT_EXTENSIONS) {
-    const r = spawnSync(process.execPath, [entry, "install", e.src], { encoding: "utf8" });
+    // git clone is flaky under GitHub rate-limiting / transient network — retry
+    // a few times so a single class doesn't end up with "0/N" extensions.
+    let status = 1;
 
-    if (r.status === 0) {
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      const r = spawnSync(process.execPath, [entry, "install", e.src], { encoding: "utf8" });
+      status = r.status;
+      if (status === 0) break;
+      // Cross-platform synchronous backoff (no `sleep` binary — Windows lacks it).
+      if (attempt < 3) Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 2000);
+    }
+
+    if (status === 0) {
       ok(`${e.name} — ${e.note}`);
       okc++;
     } else {
