@@ -194,10 +194,12 @@
       </div>
       <h3>요구사항</h3>
       <ul>
-        <li><b>Node.js ≥ 22.19</b> — <code>node -v</code> 로 확인. Docker·빌드 과정 불필요.</li>
+        <li><b>Node.js ≥ 22.19</b> — <code>node -v</code> 로 확인. <b>22 미만이면 동작하지 않습니다</b>(20.x 등은 <code>baryon doctor</code> 가 거부). Docker·빌드 과정 불필요.</li>
+        <li><b>git</b> — 기본 확장을 GitHub에서 clone 하므로 필요. <code>git --version</code> 으로 확인. 없으면 확장이 설치되지 않습니다(에이전트 본체는 동작).</li>
         <li>패키지 매니저: npm · pnpm · yarn · bun 중 무엇이든.</li>
         <li>baryon.ai API 키 (<code>vc_live_…</code>) — <a href="https://vibecamp.us/dashboard" target="_blank" rel="noopener" style="color:var(--teal)">vibecamp.us</a> 에서 발급.</li>
       </ul>
+      <div class="note"><span class="lbl">OS</span>macOS · Linux · <b>Windows</b> 모두 지원합니다. Windows는 PowerShell에서 동일하게 <code>npm install -g @baryonlabs/cli</code> 로 설치하며, Node 22+ 와 git(<a href="https://git-scm.com/download/win" target="_blank" rel="noopener" style="color:var(--teal)">git for Windows</a>)만 갖추면 됩니다.</div>
     </section>
 
     <!-- INSTALL -->
@@ -348,9 +350,7 @@ baryon config --model baryon-coder">복사</button></div>
         <div class="concept"><div class="sym">⋔</div><h4>서브에이전트</h4><p>하나의 작업을 여러 하위 에이전트로 분해·위임·통합. 복잡한 문제를 ‘나눠 푸는’ 사고.</p><a class="pill" href="https://github.com/nicobailon/pi-subagents" target="_blank" rel="noopener">pi-subagents ↗</a></div>
         <div class="concept"><div class="sym">▦</div><h4>캔버스</h4><p>결과·아티팩트를 캔버스에 펼쳐 시각적으로 구성·편집.</p><a class="pill" href="https://github.com/jyaunches/pi-canvas" target="_blank" rel="noopener">pi-canvas ↗</a></div>
         <div class="concept"><div class="sym">▮</div><h4>인터랙티브 셸</h4><p>대화형 셸 세션을 열어 명령을 단계적으로 실행·관찰.</p><a class="pill" href="https://github.com/nicobailon/pi-interactive-shell" target="_blank" rel="noopener">pi-interactive-shell ↗</a></div>
-        <div class="concept"><div class="sym">◍</div><h4>웹 액세스</h4><p>웹을 탐색하며 필요한 정보를 가져와 작업에 활용.</p><a class="pill" href="https://github.com/nicobailon/pi-web-access" target="_blank" rel="noopener">pi-web-access ↗</a></div>
-        <div class="concept"><div class="sym">⇣</div><h4>웹 페치</h4><p>URL 콘텐츠를 받아와 분석·요약·인용.</p><a class="pill" href="https://github.com/georgebashi/pi-web-fetch" target="_blank" rel="noopener">pi-web-fetch ↗</a></div>
-        <div class="concept"><div class="sym">🔍</div><h4>웹 검색</h4><p>웹 검색으로 최신 정보를 찾아 근거와 함께 답.</p><a class="pill" href="https://github.com/buddingnewinsights/pi-search" target="_blank" rel="noopener">pi-search ↗</a></div>
+        <div class="concept"><div class="sym">◍</div><h4>웹 액세스</h4><p>웹을 탐색하고 URL 콘텐츠를 가져오며(fetch) 검색까지 — 하나의 확장으로 브라우징·페치·검색을 제공.</p><a class="pill" href="https://github.com/nicobailon/pi-web-access" target="_blank" rel="noopener">pi-web-access ↗</a></div>
         <div class="concept"><div class="sym">⇶</div><h4>병렬 웹 검색</h4><p>여러 검색을 동시에 던져 결과를 모아 비교·종합.</p><a class="pill" href="https://github.com/philipp-spiess/pi-parallel-web-search" target="_blank" rel="noopener">pi-parallel-web-search ↗</a></div>
       </div>
 
@@ -382,7 +382,7 @@ baryon config --model baryon-coder">복사</button></div>
       <div class="note lime"><span class="lbl">결론</span>일반적으로는 <b>메모이제이션(DP)</b>, 매우 큰 수(n &gt; 10만)는 <b>행렬 거듭제곱</b>이 유리 — 한 문제를 여러 관점으로 동시에 탐구하는 것이 서브에이전트 학습의 핵심입니다.</div>
 
       <h3>사례 — 웹 검색·페치로 ‘근거 있는’ 보고서</h3>
-      <p><code>pi-search</code> · <code>pi-web-fetch</code> 로 위키피디아 등에서 사실을 검증하고, 그 결과를 HTML 보고서로 생성합니다 — ‘웹에서 찾아 근거를 붙이는’ 워크플로.</p>
+      <p><code>pi-web-access</code> · <code>pi-parallel-web-search</code> 로 위키피디아 등에서 사실을 검증하고, 그 결과를 HTML 보고서로 생성합니다 — ‘웹에서 찾아 근거를 붙이는’ 워크플로.</p>
       <figure style="margin:14px 0">
         <img src="/assets/websearrch-report.png" alt="웹 검색으로 사실을 검증한 뒤 보고서를 생성한 실제 실행 화면" loading="lazy" style="width:100%;border:1px solid var(--line);border-radius:12px;display:block" />
         <figcaption class="mono" style="font-size:11px;color:var(--ink-dim);margin-top:6px">실제 실행 화면 · web_search + web_fetch → fibonacci_report.html</figcaption>
