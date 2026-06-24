@@ -8,6 +8,7 @@ import {
   configCmd,
   keys,
   extensions,
+  skills,
   update,
   help,
   welcome,
@@ -69,6 +70,9 @@ async function main() {
     case "extensions":
     case "ext":
       return extensions(rest);
+    case "skills":
+    case "skill":
+      return skills(rest);
     case "update":
     case "upgrade":
       return update();

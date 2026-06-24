@@ -1,5 +1,8 @@
 // Built-in baryon subcommands. Anything not matched here is passed to pi.
 import { spawn } from "node:child_process";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import { checkLatest, discoverModels, ping } from "./api.js";
 import {
   hasConfig,
@@ -16,12 +19,15 @@ import {
   DEFAULT_BASE_URL,
   DEFAULT_EXTENSIONS,
   DEFAULT_MODELS,
+  DEFAULT_SKILLS,
   DEPRECATED_EXTENSIONS,
   HOMEPAGE,
   KEYS_URL,
   KEY_PREFIX,
   PI_PACKAGE,
+  PI_SKILLS_DIR,
   PROVIDER,
+  SKILLS_REPO,
   SUPPORT_EMAIL,
 } from "./constants.js";
 import { runPi, resolvePiEntry } from "./pi.js";
@@ -90,6 +96,12 @@ export async function setup(args) {
     installDefaults();
   }
 
+  if (flags["no-skills"]) {
+    info("기본 스킬 설치 건너뜀 (--no-skills)");
+  } else {
+    installSkills();
+  }
+
   log(`\n  ${sym.ok} 준비 완료. ${c.lime("baryon")} 으로 시작하세요.\n`);
   return 0;
 }
@@ -141,6 +153,15 @@ export async function doctor() {
     warn("pi 프로바이더 미등록 — `baryon setup` 실행");
     problems++;
   }
+
+  // default skills present? (informational — not a failure)
+  const haveSkills = DEFAULT_SKILLS.filter((s) =>
+    fs.existsSync(path.join(PI_SKILLS_DIR, s.name, "SKILL.md")),
+  ).length;
+  if (haveSkills === DEFAULT_SKILLS.length)
+    ok(`기본 스킬 ${haveSkills}/${DEFAULT_SKILLS.length} 설치됨 (pdf·pptx·xlsx)`);
+  else
+    info(`기본 스킬 ${haveSkills}/${DEFAULT_SKILLS.length} — \`baryon skills\` 로 설치`);
 
   // connectivity
   info(`연결 확인 중 → ${c.dim(cfg.baseUrl)}`);
@@ -269,6 +290,72 @@ export function installDefaults() {
   return okc;
 }
 
+// Install the default Agent Skills pack (pdf/pptx/xlsx) into ~/.pi/agent/skills/,
+// which pi auto-discovers. All three are subfolders of one repo, so we shallow-
+// clone once and copy each. Idempotent (skips skills already present) and safe to
+// re-run. Returns the count installed/present.
+export function installSkills() {
+  const present = DEFAULT_SKILLS.filter((s) =>
+    fs.existsSync(path.join(PI_SKILLS_DIR, s.name, "SKILL.md")),
+  );
+  const missing = DEFAULT_SKILLS.filter(
+    (s) => !fs.existsSync(path.join(PI_SKILLS_DIR, s.name, "SKILL.md")),
+  );
+
+  if (missing.length === 0) {
+    log(`  ${sym.ok} 기본 스킬 ${DEFAULT_SKILLS.length}/${DEFAULT_SKILLS.length} (이미 설치됨)`);
+    return DEFAULT_SKILLS.length;
+  }
+
+  log(`  ${sym.info} 기본 스킬 설치 중 (${missing.length}종 · ${SKILLS_REPO.split("/").slice(-2).join("/")})…`);
+  fs.mkdirSync(PI_SKILLS_DIR, { recursive: true });
+
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "baryon-skills-"));
+  let okc = present.length;
+
+  try {
+    // Shallow, blobless clone — fast, no full history.
+    let cloned = false;
+    for (let attempt = 1; attempt <= 3 && !cloned; attempt++) {
+      const r = spawnSync(
+        "git",
+        ["clone", "--depth", "1", "--filter=blob:none", SKILLS_REPO, tmp],
+        { encoding: "utf8" },
+      );
+      cloned = r.status === 0;
+      if (!cloned && attempt < 3)
+        Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 2000);
+    }
+
+    if (!cloned) {
+      warn("스킬 저장소 clone 실패(네트워크/git 확인) — 스킬 건너뜀");
+      return okc;
+    }
+
+    for (const s of missing) {
+      const src = path.join(tmp, ...s.subdir.split("/"));
+      const dst = path.join(PI_SKILLS_DIR, s.name);
+      try {
+        if (!fs.existsSync(path.join(src, "SKILL.md"))) {
+          warn(`${s.name} — 저장소에 ${s.subdir}/SKILL.md 없음, 건너뜀`);
+          continue;
+        }
+        fs.rmSync(dst, { recursive: true, force: true });
+        fs.cpSync(src, dst, { recursive: true });
+        ok(`skill: ${s.name} — ${s.note}`);
+        okc++;
+      } catch (e) {
+        warn(`${s.name} 스킬 설치 실패 — 건너뜀 (${e.message})`);
+      }
+    }
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+
+  log(`  ${sym.ok} 기본 스킬 ${okc}/${DEFAULT_SKILLS.length} 설치 → ${PI_SKILLS_DIR}`);
+  return okc;
+}
+
 export function extensions(args) {
   const sub = args[0];
 
@@ -283,6 +370,27 @@ export function extensions(args) {
   return 0;
 }
 
+// `baryon skills` — install/sync the default Agent Skills pack; `list` shows it.
+export function skills(args) {
+  const sub = args[0];
+  banner();
+
+  if (sub === "list" || sub === "ls") {
+    log(c.bold("  Baryon 기본 스킬 팩\n"));
+    for (const s of DEFAULT_SKILLS) {
+      const here = fs.existsSync(path.join(PI_SKILLS_DIR, s.name, "SKILL.md"));
+      log(`  ${here ? sym.ok : sym.info} ${c.lime(s.name)} — ${s.note} ${here ? "" : c.dim("(미설치)")}`);
+    }
+    log(`\n  ${sym.info} 설치/동기화: ${c.lime("baryon skills")} · 위치: ${c.dim(PI_SKILLS_DIR)}\n`);
+    return 0;
+  }
+
+  log(c.bold("  Baryon 기본 스킬 설치\n"));
+  installSkills();
+  log(`\n  ${sym.info} 사용: pi 에이전트에서 ${c.lime("/skill pdf")} 처럼 호출 · 목록: ${c.lime("baryon skills list")}\n`);
+  return 0;
+}
+
 export function help() {
   banner();
   log(`${c.bold("USAGE")}
@@ -294,6 +402,7 @@ ${c.bold("COMMANDS")}
   ${c.lime("baryon config")}           현재 설정 보기 ${c.dim("(--key/--base-url/--model 로 변경)")}
   ${c.lime("baryon models")}           사용 가능한 모델 목록
   ${c.lime("baryon extensions")}       기본 확장 설치(서브에이전트·캔버스·셸·웹) ${c.dim("· list 로 목록")}
+  ${c.lime("baryon skills")}           기본 스킬 설치(pdf·pptx·xlsx) ${c.dim("· list 로 목록")}
   ${c.lime("baryon doctor")}           설치·연결 진단
   ${c.lime("baryon update")}           CLI + pi 에이전트 업데이트
   ${c.lime("baryon help")}             이 도움말

@@ -51,6 +51,8 @@ export const PI_AGENT_DIR = path.join(os.homedir(), ".pi", "agent");
 export const PI_MODELS_JSON = path.join(PI_AGENT_DIR, "models.json");
 /** pi's extension registry — a `{ packages: [<git url>, …] }` list loaded on startup. */
 export const PI_SETTINGS_JSON = path.join(PI_AGENT_DIR, "settings.json");
+/** pi auto-discovers Agent Skills here (a folder per skill with a SKILL.md). */
+export const PI_SKILLS_DIR = path.join(PI_AGENT_DIR, "skills");
 
 /**
  * Fallback model catalog used when /models discovery is unavailable
@@ -106,6 +108,22 @@ export const DEFAULT_EXTENSIONS = [
 export const DEPRECATED_EXTENSIONS = [
   { name: "pi-web-fetch", src: "https://github.com/georgebashi/pi-web-fetch", owner: "georgebashi" },
   { name: "pi-search", src: "https://github.com/buddingnewinsights/pi-search", owner: "buddingnewinsights" }
+];
+
+/**
+ * Default Agent Skills pack (P1). pi natively supports Anthropic's document
+ * skills (pdf/pptx/xlsx) and auto-discovers them from ~/.pi/agent/skills/.
+ * All three live as subfolders of one repo, so we shallow-clone once and copy.
+ *
+ * License note: anthropics/skills document skills are *source-available* and
+ * "for demonstration and educational purposes only" — fits Baryon's教育/내부
+ * use. Revisit if redistributed commercially. (See multi-client TODO.)
+ */
+export const SKILLS_REPO = "https://github.com/anthropics/skills";
+export const DEFAULT_SKILLS = [
+  { name: "pdf", subdir: "skills/pdf", note: "PDF 처리(추출·폼·병합·생성)" },
+  { name: "pptx", subdir: "skills/pptx", note: "슬라이드 초안 생성·편집" },
+  { name: "xlsx", subdir: "skills/xlsx", note: "데이터 분석·스프레드시트" }
 ];
 
 export const HOMEPAGE = "https://cli.baryon.ai";

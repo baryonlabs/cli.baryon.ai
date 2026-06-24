@@ -1,5 +1,16 @@
 # Changelog — @baryonlabs/cli
 
+## [0.3.2] — 2026-06-24
+
+### Added
+- **기본 스킬 팩(P1)** — `baryon setup` 이 Anthropic 공식 Agent Skills 3종을
+  `~/.pi/agent/skills/` 에 설치(pi가 자동 발견): `pdf`(PDF 처리),
+  `pptx`(슬라이드 초안), `xlsx`(데이터 분석). 한 repo의 서브폴더라 shallow
+  clone 1회 후 복사. 멱등(이미 있으면 skip)·재시도·크로스플랫폼(fs 기반).
+- `baryon skills` (설치/동기화) · `baryon skills list` (목록) 명령.
+- `--no-skills` 플래그 · `baryon doctor` 에 스킬 설치 상태 표시.
+- 라이선스: 문서 스킬은 source-available·교육/데모 목적 — 교육/내부용에 한정 사용.
+
 ## [0.3.1] — 2026-06-23
 
 ### Fixed
