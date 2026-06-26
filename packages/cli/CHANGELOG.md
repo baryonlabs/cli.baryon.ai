@@ -1,5 +1,18 @@
 # Changelog — @baryonlabs/cli
 
+## [0.3.3] — 2026-06-26
+
+### Added
+- **agent-browser 기본 통합** (웹/ERP 브라우저 자동화, vercel-labs/agent-browser):
+  - 번들 스킬 `agent-browser`(SKILL.md) 추가 → 기본 스킬 팩에 포함(이제 4종:
+    pdf·pptx·xlsx·agent-browser). 패키지 내장이라 네트워크 없이 설치.
+  - `baryon setup` 이 `agent-browser` CLI를 전역 설치(`npm i -g agent-browser` +
+    `agent-browser install`). best-effort(실패해도 setup은 진행) · `--no-browser` 로 생략.
+  - `baryon doctor` 에 agent-browser 설치 상태 표시.
+- 스킬 소스 2종 지원: `repo`(anthropics/skills 서브폴더) + `bundled`(패키지 내장).
+- 안전 가이드(SKILL.md): 읽기 전용 우선, 쓰기 전 사람 승인, CAPTCHA/인증서 우회 금지,
+  사내망 데몬 위치, 프롬프트 인젝션 방지.
+
 ## [0.3.2] — 2026-06-24
 
 ### Added

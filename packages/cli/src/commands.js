@@ -3,6 +3,7 @@ import { spawn } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { checkLatest, discoverModels, ping } from "./api.js";
 import {
   hasConfig,
@@ -102,6 +103,12 @@ export async function setup(args) {
     installSkills();
   }
 
+  if (flags["no-browser"]) {
+    info("agent-browser 설치 건너뜀 (--no-browser)");
+  } else {
+    installBrowser();
+  }
+
   log(`\n  ${sym.ok} 준비 완료. ${c.lime("baryon")} 으로 시작하세요.\n`);
   return 0;
 }
@@ -159,9 +166,14 @@ export async function doctor() {
     fs.existsSync(path.join(PI_SKILLS_DIR, s.name, "SKILL.md")),
   ).length;
   if (haveSkills === DEFAULT_SKILLS.length)
-    ok(`기본 스킬 ${haveSkills}/${DEFAULT_SKILLS.length} 설치됨 (pdf·pptx·xlsx)`);
+    ok(`기본 스킬 ${haveSkills}/${DEFAULT_SKILLS.length} 설치됨 (pdf·pptx·xlsx·agent-browser)`);
   else
     info(`기본 스킬 ${haveSkills}/${DEFAULT_SKILLS.length} — \`baryon skills\` 로 설치`);
+
+  // agent-browser (web/ERP automation) — informational
+  const ab = spawnSync("agent-browser", ["--version"], { encoding: "utf8" });
+  if (ab.status === 0) ok(`agent-browser 설치됨 (${(ab.stdout || "").trim() || "ok"})`);
+  else info("agent-browser 미설치 — `baryon setup`(자동) 또는 `npm i -g agent-browser`");
 
   // connectivity
   info(`연결 확인 중 → ${c.dim(cfg.baseUrl)}`);
@@ -295,65 +307,111 @@ export function installDefaults() {
 // clone once and copy each. Idempotent (skips skills already present) and safe to
 // re-run. Returns the count installed/present.
 export function installSkills() {
-  const present = DEFAULT_SKILLS.filter((s) =>
-    fs.existsSync(path.join(PI_SKILLS_DIR, s.name, "SKILL.md")),
-  );
-  const missing = DEFAULT_SKILLS.filter(
-    (s) => !fs.existsSync(path.join(PI_SKILLS_DIR, s.name, "SKILL.md")),
-  );
+  const installed = (s) => fs.existsSync(path.join(PI_SKILLS_DIR, s.name, "SKILL.md"));
+  const missing = DEFAULT_SKILLS.filter((s) => !installed(s));
+  let okc = DEFAULT_SKILLS.length - missing.length;
 
   if (missing.length === 0) {
     log(`  ${sym.ok} 기본 스킬 ${DEFAULT_SKILLS.length}/${DEFAULT_SKILLS.length} (이미 설치됨)`);
     return DEFAULT_SKILLS.length;
   }
 
-  log(`  ${sym.info} 기본 스킬 설치 중 (${missing.length}종 · ${SKILLS_REPO.split("/").slice(-2).join("/")})…`);
+  log(`  ${sym.info} 기본 스킬 설치 중 (${missing.length}종)…`);
   fs.mkdirSync(PI_SKILLS_DIR, { recursive: true });
 
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "baryon-skills-"));
-  let okc = present.length;
+  // Bundled skills ship inside this package under ../skills/<name>/.
+  const bundledRoot = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "skills");
 
-  try {
-    // Shallow, blobless clone — fast, no full history.
-    let cloned = false;
-    for (let attempt = 1; attempt <= 3 && !cloned; attempt++) {
-      const r = spawnSync(
-        "git",
-        ["clone", "--depth", "1", "--filter=blob:none", SKILLS_REPO, tmp],
-        { encoding: "utf8" },
-      );
-      cloned = r.status === 0;
-      if (!cloned && attempt < 3)
-        Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 2000);
+  const copySkill = (srcDir, s) => {
+    const dst = path.join(PI_SKILLS_DIR, s.name);
+    if (!fs.existsSync(path.join(srcDir, "SKILL.md"))) {
+      warn(`${s.name} — SKILL.md 없음(${srcDir}), 건너뜀`);
+      return false;
     }
+    fs.rmSync(dst, { recursive: true, force: true });
+    fs.cpSync(srcDir, dst, { recursive: true });
+    ok(`skill: ${s.name} — ${s.note}`);
+    return true;
+  };
 
-    if (!cloned) {
-      warn("스킬 저장소 clone 실패(네트워크/git 확인) — 스킬 건너뜀");
-      return okc;
+  // 1) Bundled skills — straight copy, no network.
+  for (const s of missing.filter((s) => s.source === "bundled")) {
+    try {
+      if (copySkill(path.join(bundledRoot, s.name), s)) okc++;
+    } catch (e) {
+      warn(`${s.name} 스킬 설치 실패 — 건너뜀 (${e.message})`);
     }
+  }
 
-    for (const s of missing) {
-      const src = path.join(tmp, ...s.subdir.split("/"));
-      const dst = path.join(PI_SKILLS_DIR, s.name);
-      try {
-        if (!fs.existsSync(path.join(src, "SKILL.md"))) {
-          warn(`${s.name} — 저장소에 ${s.subdir}/SKILL.md 없음, 건너뜀`);
-          continue;
-        }
-        fs.rmSync(dst, { recursive: true, force: true });
-        fs.cpSync(src, dst, { recursive: true });
-        ok(`skill: ${s.name} — ${s.note}`);
-        okc++;
-      } catch (e) {
-        warn(`${s.name} 스킬 설치 실패 — 건너뜀 (${e.message})`);
+  // 2) Repo skills — shallow-clone the source repo once, copy each subdir.
+  const repoSkills = missing.filter((s) => s.source === "repo");
+  if (repoSkills.length > 0) {
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "baryon-skills-"));
+    try {
+      let cloned = false;
+      for (let attempt = 1; attempt <= 3 && !cloned; attempt++) {
+        const r = spawnSync(
+          "git",
+          ["clone", "--depth", "1", "--filter=blob:none", SKILLS_REPO, tmp],
+          { encoding: "utf8" },
+        );
+        cloned = r.status === 0;
+        if (!cloned && attempt < 3)
+          Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 2000);
       }
+
+      if (!cloned) {
+        warn("스킬 저장소 clone 실패(네트워크/git 확인) — 일부 스킬 건너뜀");
+      } else {
+        for (const s of repoSkills) {
+          try {
+            if (copySkill(path.join(tmp, ...s.subdir.split("/")), s)) okc++;
+          } catch (e) {
+            warn(`${s.name} 스킬 설치 실패 — 건너뜀 (${e.message})`);
+          }
+        }
+      }
+    } finally {
+      fs.rmSync(tmp, { recursive: true, force: true });
     }
-  } finally {
-    fs.rmSync(tmp, { recursive: true, force: true });
   }
 
   log(`  ${sym.ok} 기본 스킬 ${okc}/${DEFAULT_SKILLS.length} 설치 → ${PI_SKILLS_DIR}`);
   return okc;
+}
+
+// Install the agent-browser CLI (web/ERP automation) globally so the
+// agent-browser skill works out of the box. Best-effort: a failure (offline,
+// no npm) is a warning, not a setup failure. Heavy step (Rust binary + Chrome
+// for Testing download), so it's opt-out via --no-browser.
+export function installBrowser() {
+  // Already present?
+  const probe = spawnSync("agent-browser", ["--version"], { encoding: "utf8" });
+  if (probe.status === 0) {
+    ok(`agent-browser 설치됨 (${(probe.stdout || "").trim() || "ok"})`);
+    return true;
+  }
+
+  log(`  ${sym.info} agent-browser 설치 중 (웹/ERP 자동화 · 최초 1회, 브라우저 다운로드 포함)…`);
+
+  let ok1 = false;
+  for (let attempt = 1; attempt <= 2 && !ok1; attempt++) {
+    const r = spawnSync("npm", ["install", "-g", "agent-browser"], { encoding: "utf8", stdio: "ignore" });
+    ok1 = r.status === 0;
+    if (!ok1 && attempt < 2) Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 2000);
+  }
+
+  if (!ok1) {
+    warn("agent-browser 설치 실패(네트워크/npm 확인) — 건너뜀. 나중에 `npm i -g agent-browser && agent-browser install`");
+    return false;
+  }
+
+  // Download the browser engine (Chrome for Testing). Best-effort.
+  const inst = spawnSync("agent-browser", ["install"], { encoding: "utf8", stdio: "ignore" });
+  if (inst.status === 0) ok("agent-browser — 웹/ERP 브라우저 자동화 준비됨");
+  else warn("agent-browser 바이너리는 설치됨 · 브라우저 다운로드 미완 — 최초 사용 시 `agent-browser install`");
+
+  return true;
 }
 
 export function extensions(args) {

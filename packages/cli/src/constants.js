@@ -120,10 +120,13 @@ export const DEPRECATED_EXTENSIONS = [
  * use. Revisit if redistributed commercially. (See multi-client TODO.)
  */
 export const SKILLS_REPO = "https://github.com/anthropics/skills";
+// `source: "repo"` → copied from a subdir of SKILLS_REPO (shallow clone).
+// `source: "bundled"` → shipped inside this npm package under skills/<name>/.
 export const DEFAULT_SKILLS = [
-  { name: "pdf", subdir: "skills/pdf", note: "PDF 처리(추출·폼·병합·생성)" },
-  { name: "pptx", subdir: "skills/pptx", note: "슬라이드 초안 생성·편집" },
-  { name: "xlsx", subdir: "skills/xlsx", note: "데이터 분석·스프레드시트" }
+  { name: "pdf", source: "repo", subdir: "skills/pdf", note: "PDF 처리(추출·폼·병합·생성)" },
+  { name: "pptx", source: "repo", subdir: "skills/pptx", note: "슬라이드 초안 생성·편집" },
+  { name: "xlsx", source: "repo", subdir: "skills/xlsx", note: "데이터 분석·스프레드시트" },
+  { name: "agent-browser", source: "bundled", note: "웹/ERP 브라우저 자동화" }
 ];
 
 export const HOMEPAGE = "https://cli.baryon.ai";
