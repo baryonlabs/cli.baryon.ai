@@ -18,10 +18,17 @@ import {
   CLIENT_ENV,
 } from "./constants.js";
 
-/** Headers the baryon provider must always send (resolved by pi from env). */
+/**
+ * Headers the baryon provider always sends. Resolved by pi via a shell command
+ * (`!…`) with a `${VAR:-default}` fallback, so a MISSING env var never hard-fails
+ * — pi's resolveHeadersOrThrow throws on an empty `$VAR`, which broke subagent
+ * child processes and direct `pi` runs ("Failed to resolve provider header…").
+ * The wrapper (pi.js) still sets the real values; the fallback only kicks in
+ * when they're absent.
+ */
 const PROVIDER_HEADERS = {
-  [SESSION_HEADER]: `$${SESSION_ID_ENV}`,
-  [CLIENT_HEADER]: `$${CLIENT_ENV}`,
+  [SESSION_HEADER]: `!echo "\${${SESSION_ID_ENV}:-cli-$(date +%s)-$$}"`,
+  [CLIENT_HEADER]: `!echo "\${${CLIENT_ENV}:-baryon-cli/unknown}"`,
 };
 
 function readJson(file, fallback) {

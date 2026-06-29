@@ -91,10 +91,8 @@ export const DEFAULT_MODELS = [
  *    already provides browsing + fetch_content + web_search without that dependency.
  */
 export const DEFAULT_EXTENSIONS = [
-  { name: "pi-subagents", src: "https://github.com/nicobailon/pi-subagents", note: "서브에이전트(작업 분해·위임·통합)" },
   { name: "pi-canvas", src: "https://github.com/jyaunches/pi-canvas", note: "캔버스" },
   { name: "pi-interactive-shell", src: "https://github.com/nicobailon/pi-interactive-shell", note: "인터랙티브 셸" },
-  { name: "pi-web-access", src: "https://github.com/nicobailon/pi-web-access", note: "웹 액세스(브라우징·검색·페치)" },
   { name: "pi-parallel-web-search", src: "https://github.com/philipp-spiess/pi-parallel-web-search", note: "병렬 웹 검색" }
 ];
 
@@ -107,7 +105,13 @@ export const DEFAULT_EXTENSIONS = [
  */
 export const DEPRECATED_EXTENSIONS = [
   { name: "pi-web-fetch", src: "https://github.com/georgebashi/pi-web-fetch", owner: "georgebashi" },
-  { name: "pi-search", src: "https://github.com/buddingnewinsights/pi-search", owner: "buddingnewinsights" }
+  { name: "pi-search", src: "https://github.com/buddingnewinsights/pi-search", owner: "buddingnewinsights" },
+  // pi ≥0.78: ships a built-in `subagent` tool → cloned pi-subagents conflicts
+  // ("Tool subagent conflicts"). pi-web-access imports the dropped pi-ai `/compat`
+  // path → "Cannot find module …/pi-ai/dist/index.js/compat". Both hard-fail
+  // startup; prune from existing installs. (web search remains via pi-parallel-web-search.)
+  { name: "pi-subagents", src: "https://github.com/nicobailon/pi-subagents", owner: "nicobailon" },
+  { name: "pi-web-access", src: "https://github.com/nicobailon/pi-web-access", owner: "nicobailon" }
 ];
 
 /**

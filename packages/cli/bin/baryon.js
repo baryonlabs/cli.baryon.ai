@@ -13,7 +13,8 @@ import {
   help,
   welcome,
 } from "../src/commands.js";
-import { loadConfig, piProviderConfigured, hasConfig } from "../src/config.js";
+import { loadConfig, piProviderConfigured, hasConfig, prunePiPackages } from "../src/config.js";
+import { DEPRECATED_EXTENSIONS } from "../src/constants.js";
 import { runPi, resolvePiEntry } from "../src/pi.js";
 import { checkLatest } from "../src/api.js";
 import { spawnSync } from "node:child_process";
@@ -106,6 +107,15 @@ async function main() {
         return 1;
       }
       await warnIfOutdated();
+      // Self-heal: drop extensions known to hard-fail startup on current pi
+      // (conflicts / removed deps) so a plain `baryon` run isn't broken.
+      try {
+        const pruned = prunePiPackages(DEPRECATED_EXTENSIONS);
+        if (pruned.length)
+          log(`  ${sym.info} ${c.dim(`충돌 확장 정리됨: ${pruned.join(", ")}`)}`);
+      } catch {
+        /* best-effort */
+      }
       const cfg = loadConfig();
       return runPi(argv, cfg);
     }
