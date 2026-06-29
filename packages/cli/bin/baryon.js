@@ -9,6 +9,7 @@ import {
   keys,
   extensions,
   skills,
+  edge,
   update,
   help,
   welcome,
@@ -75,6 +76,8 @@ async function main() {
     case "skills":
     case "skill":
       return skills(rest);
+    case "edge":
+      return edge(rest);
     case "update":
     case "upgrade":
       return update();

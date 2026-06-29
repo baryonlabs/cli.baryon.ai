@@ -1,5 +1,12 @@
 # Changelog — @baryonlabs/cli
 
+## [0.3.8] — 2026-06-29
+
+### Added
+- **`baryon edge`** (Enterprise) — delegates to `@baryonlabs/edge`, a network-isolated
+  read-only data sandbox (Postgres SELECT-only + MinIO/S3 GET-only via MCP, no data
+  egress). Prints an install hint if the enterprise package isn't present.
+
 ## [0.3.7] — 2026-06-29
 
 ### Added

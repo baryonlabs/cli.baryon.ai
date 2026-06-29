@@ -185,6 +185,7 @@ const MESSAGES = {
     "bin.prunedConflicts": "충돌 확장 정리됨: {names}",
     "bin.room": "🏫 {project} · 좌석 {seat}",
     "bin.roomInactive": "🚫 {project} (비활성) · 좌석 {seat}",
+    "edge.notInstalled": "Baryon Edge(엔터프라이즈) 미설치 — 읽기전용 데이터 샌드박스:",
   },
 
   en: {
@@ -327,6 +328,7 @@ const MESSAGES = {
     "bin.prunedConflicts": "Cleaned up conflicting extensions: {names}",
     "bin.room": "🏫 {project} · seat {seat}",
     "bin.roomInactive": "🚫 {project} (inactive) · seat {seat}",
+    "edge.notInstalled": "Baryon Edge (Enterprise) not installed — read-only data sandbox:",
   },
 };
 

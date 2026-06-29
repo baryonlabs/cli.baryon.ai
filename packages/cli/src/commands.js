@@ -251,6 +251,22 @@ export function keys() {
   return 0;
 }
 
+// Enterprise: delegate to @baryonlabs/edge's launcher (read-only data sandbox).
+export function edge(args) {
+  return new Promise((resolve) => {
+    const child = spawn("baryon-edge", args, {
+      stdio: "inherit",
+      shell: process.platform === "win32",
+    });
+    child.on("error", () => {
+      log(`  ${sym.warn} ${t("edge.notInstalled")}`);
+      log(`     ${c.lime("npm i -g @baryonlabs/edge")}`);
+      resolve(1);
+    });
+    child.on("exit", (code) => resolve(code ?? 0));
+  });
+}
+
 export function update() {
   return new Promise((resolve) => {
     // 1/2 — CLI + pi core via npm (gets the latest pi binary, e.g. 0.80.x).
