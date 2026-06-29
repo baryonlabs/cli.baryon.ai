@@ -92,8 +92,7 @@ export const DEFAULT_MODELS = [
  */
 export const DEFAULT_EXTENSIONS = [
   { name: "pi-canvas", src: "https://github.com/jyaunches/pi-canvas", note: "캔버스" },
-  { name: "pi-interactive-shell", src: "https://github.com/nicobailon/pi-interactive-shell", note: "인터랙티브 셸" },
-  { name: "pi-parallel-web-search", src: "https://github.com/philipp-spiess/pi-parallel-web-search", note: "병렬 웹 검색" }
+  { name: "pi-interactive-shell", src: "https://github.com/nicobailon/pi-interactive-shell", note: "인터랙티브 셸" }
 ];
 
 /**
@@ -111,7 +110,11 @@ export const DEPRECATED_EXTENSIONS = [
   // path → "Cannot find module …/pi-ai/dist/index.js/compat". Both hard-fail
   // startup; prune from existing installs. (web search remains via pi-parallel-web-search.)
   { name: "pi-subagents", src: "https://github.com/nicobailon/pi-subagents", owner: "nicobailon" },
-  { name: "pi-web-access", src: "https://github.com/nicobailon/pi-web-access", owner: "nicobailon" }
+  { name: "pi-web-access", src: "https://github.com/nicobailon/pi-web-access", owner: "nicobailon" },
+  // pi ≥0.78 ships a built-in `websearch` (Wikipedia-backed web_search + web_fetch,
+  // NO key). pi-parallel-web-search needs PARALLEL_API_KEY → "web_search: PARALLEL_API_KEY
+  // not set — tool disabled" noise + redundant. Prune it; search stays via built-in.
+  { name: "pi-parallel-web-search", src: "https://github.com/philipp-spiess/pi-parallel-web-search", owner: "philipp-spiess" }
 ];
 
 /**
