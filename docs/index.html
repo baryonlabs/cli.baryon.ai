@@ -168,6 +168,7 @@
     <h6>도움말</h6>
     <a href="#troubleshooting">트러블슈팅</a>
     <a href="#faq">FAQ</a>
+    <a href="#changelog">변경 이력</a>
   </aside>
 
   <main>
@@ -499,6 +500,21 @@ baryon config --model baryon-coder">복사</button></div>
       <p>네. <code>baryon --provider anthropic</code> 처럼 pi 가 지원하는 모든 프로바이더로 무중단 전환됩니다.</p>
       <h3>코드는 공개인가요?</h3>
       <p>이 래퍼(<code>@baryonlabs/cli</code>)와 문서는 공개이며, 실제 코딩 에이전트 <code>pi</code> 본체는 별도로 관리됩니다.</p>
+    </section>
+
+    <section id="changelog">
+      <h2><span class="hash">#</span>변경 이력</h2>
+      <p class="sub">전체 변경 이력은 <a href="https://github.com/baryonlabs/cli.baryon.ai/blob/main/packages/cli/CHANGELOG.md" target="_blank" rel="noopener" style="color:var(--teal)">CHANGELOG.md</a> · 항상 최신: <code>baryon update</code></p>
+      <table class="tbl">
+        <tr><th>버전</th><th>변경</th></tr>
+        <tr><td><code>0.3.7</code></td><td><b>다국어(ko/en)</b> — 모든 CLI 메시지 i18n. <code>BARYON_LANG=en</code> / <code>baryon config --lang en</code>. · <b>룸 표시</b> — 시작 시 <code>🏫 분반 · 좌석</code> 노출.</td></tr>
+        <tr><td><code>0.3.6</code></td><td><code>baryon update</code> 가 pi 코어 + pi 패키지(<code>pi update</code>)까지 한 번에 갱신.</td></tr>
+        <tr><td><code>0.3.5</code></td><td><code>pi-parallel-web-search</code> 제거 → pi 내장 <code>websearch</code> 사용(키 불필요, <code>PARALLEL_API_KEY</code> 경고 제거).</td></tr>
+        <tr><td><code>0.3.4</code></td><td><b>pi 0.78 호환</b> — 헤더 셸 폴백으로 세션 누락 시에도 안 깨짐 · 충돌 확장(<code>pi-subagents</code>·<code>pi-web-access</code>) 자동 정리.</td></tr>
+        <tr><td><code>0.3.3</code></td><td><b>agent-browser</b> 기본 통합(웹/ERP 자동화 스킬 + 바이너리 자동설치).</td></tr>
+        <tr><td><code>0.3.2</code></td><td>기본 <b>스킬 팩</b>(pdf·pptx·xlsx) 자동 설치(<code>~/.pi/agent/skills</code>).</td></tr>
+        <tr><td><code>0.3.0</code></td><td>최신 CLI 강제(<code>X-Baryon-Client</code>) · 세션 ID 전송 · 기본 모델 <code>qwen3-coder-flash</code>.</td></tr>
+      </table>
     </section>
 
     <footer>
