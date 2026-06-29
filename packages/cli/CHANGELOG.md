@@ -1,5 +1,33 @@
 # Changelog — @baryonlabs/cli
 
+## [0.3.7] — 2026-06-29
+
+### Added
+- **다국어(i18n) ko/en** — 모든 CLI 메시지를 `t()` 카탈로그로 외부화(~110키).
+  `BARYON_LANG=en` 또는 `baryon config --lang en` 로 전환(기본 ko).
+- **룸 표시** — `baryon` 시작 시 연결된 분반·좌석을 `🏫 <프로젝트> · 좌석 <라벨>`
+  로 표시(게이트웨이 `/v1/whoami`, best-effort).
+
+## [0.3.6] — 2026-06-29
+
+### Changed
+- `baryon update` 가 2단계로: npm(CLI+pi 코어) → `pi update`(pi 패키지)까지 갱신해
+  pi 자체 업데이트 알림도 정리.
+
+## [0.3.5] — 2026-06-29
+
+### Fixed
+- `pi-parallel-web-search` 제거(pi ≥0.78 내장 `websearch` 로 대체) — `PARALLEL_API_KEY`
+  경고 제거. 웹 검색·페치는 내장으로 키 없이 동작.
+
+## [0.3.4] — 2026-06-29
+
+### Fixed
+- **pi 0.78 호환** — 프로바이더 헤더를 셸 폴백(`!echo "${VAR:-…}"`)으로 바꿔
+  `BARYON_SESSION_ID` 누락 시에도 throw하지 않음(서브에이전트 자식/직접 pi 실행 OK).
+- 충돌 확장 자동 정리(self-heal): `pi-subagents`(내장 subagent 충돌)·`pi-web-access`
+  (pi-ai `/compat` 제거)를 기본에서 빼고 기존 설치본도 prune.
+
 ## [0.3.3] — 2026-06-26
 
 ### Added

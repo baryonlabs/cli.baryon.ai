@@ -16,10 +16,11 @@ import {
 import { loadConfig, piProviderConfigured, hasConfig, prunePiPackages } from "../src/config.js";
 import { DEPRECATED_EXTENSIONS } from "../src/constants.js";
 import { runPi, resolvePiEntry } from "../src/pi.js";
-import { checkLatest } from "../src/api.js";
+import { checkLatest, whoami } from "../src/api.js";
 import { spawnSync } from "node:child_process";
 import { createRequire } from "node:module";
 import { c, err, log, sym } from "../src/ui.js";
+import { t } from "../src/i18n.js";
 
 /** Best-effort: warn loudly when a newer CLI exists. The gateway enforces the
  *  minimum version (426), so cloud use is blocked until you update; this is the
@@ -28,8 +29,8 @@ async function warnIfOutdated() {
   const r = await checkLatest();
   if (r?.outdated) {
     log(
-      `\n  ${sym.warn} ${c.yellow(`업데이트 필요: @baryonlabs/cli ${r.current} → ${r.latest}`)}\n` +
-        `  ${c.dim("baryon.ai 사용에 최신 버전이 필요합니다.")} ${c.lime("baryon update")} ${c.dim("를 실행하세요.\n")}`,
+      `\n  ${sym.warn} ${c.yellow(t("bin.outdated", { current: r.current, latest: r.latest }))}\n` +
+        `  ${c.dim(t("bin.outdatedSub"))} ${c.lime("baryon update")} ${c.dim(t("bin.outdatedRun") + "\n")}`,
     );
   }
 }
@@ -44,7 +45,7 @@ function showVersion() {
     const r = spawnSync(process.execPath, [entry, "--version"], {
       encoding: "utf8",
     });
-    if (r.stdout) log(`pi ${c.dim(r.stdout.trim())}`);
+    if (r.stdout) log(t("bin.piVersion", { version: c.dim(r.stdout.trim()) }));
   }
   return 0;
 }
@@ -97,12 +98,12 @@ async function main() {
       if (unconfigured && !userTargets) {
         if (process.stdin.isTTY) {
           log(
-            `  ${sym.warn} ${c.yellow("아직 설정되지 않았습니다.")} ${c.lime("baryon setup")} ${c.dim("을 먼저 실행합니다.")}\n`,
+            `  ${sym.warn} ${c.yellow(t("bin.unconfiguredTTY"))} ${c.lime("baryon setup")} ${c.dim(t("bin.unconfiguredTTYRun"))}\n`,
           );
           return setup([]);
         }
         log(
-          `  ${sym.warn} ${c.yellow("설정이 없습니다.")} ${c.lime("baryon setup")} ${c.dim("을 먼저 실행하세요.")}`,
+          `  ${sym.warn} ${c.yellow(t("bin.unconfigured"))} ${c.lime("baryon setup")} ${c.dim(t("bin.unconfiguredRun"))}`,
         );
         return 1;
       }
@@ -112,11 +113,21 @@ async function main() {
       try {
         const pruned = prunePiPackages(DEPRECATED_EXTENSIONS);
         if (pruned.length)
-          log(`  ${sym.info} ${c.dim(`충돌 확장 정리됨: ${pruned.join(", ")}`)}`);
+          log(`  ${sym.info} ${c.dim(t("bin.prunedConflicts", { names: pruned.join(", ") }))}`);
       } catch {
         /* best-effort */
       }
       const cfg = loadConfig();
+      // Show which room (project/분반 · seat) this key is in — best-effort.
+      try {
+        const who = await whoami(cfg.baseUrl, cfg.apiKey);
+        if (who?.project) {
+          const key = who.project_status === "active" ? "bin.room" : "bin.roomInactive";
+          log(`  ${c.teal(t(key, { project: who.project, seat: who.seat || "—" }))}`);
+        }
+      } catch {
+        /* best-effort */
+      }
       return runPi(argv, cfg);
     }
   }

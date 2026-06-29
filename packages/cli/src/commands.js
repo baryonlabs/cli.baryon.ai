@@ -33,6 +33,7 @@ import {
 } from "./constants.js";
 import { runPi, resolvePiEntry } from "./pi.js";
 import { banner, c, info, log, ok, err, warn, prompt, promptHidden, sym } from "./ui.js";
+import { t, normalizeLocale, getLocale } from "./i18n.js";
 
 /** Parse `--flag value` / `--flag=value` pairs out of argv. */
 function parseFlags(args) {
@@ -53,7 +54,7 @@ function parseFlags(args) {
 export async function setup(args) {
   const flags = parseFlags(args);
   banner();
-  log(c.bold("  baryon.ai 연결 설정\n"));
+  log(c.bold(`  ${t("setup.title")}\n`));
 
   const existing = loadConfig();
   const baseUrl = flags["base-url"] || existing.baseUrl || DEFAULT_BASE_URL;
@@ -61,103 +62,107 @@ export async function setup(args) {
   let apiKey = flags.key || flags["api-key"] || process.env.BARYON_API_KEY || "";
   if (!apiKey) {
     // Tell the user where keys come from before asking for one.
-    log(`  ${sym.info} 키 발급·관리: ${c.lime(KEYS_URL)}`);
-    log(`  ${c.dim(`   (vibecamp.us 대시보드에서 발급/회수 · 형식 ${KEY_PREFIX}…)`)}\n`);
-    apiKey = await promptHidden(`  ${sym.info} baryon.ai API key: `);
+    log(`  ${sym.info} ${t("setup.keyHint", { url: c.lime(KEYS_URL) })}`);
+    log(`  ${c.dim(t("setup.keyHintSub", { prefix: KEY_PREFIX }))}\n`);
+    apiKey = await promptHidden(`  ${sym.info} ${t("setup.keyPrompt")}`);
   }
   if (!apiKey) {
-    warn("API 키 없이 저장합니다. 나중에 `baryon setup --key <KEY>` 로 추가하세요.");
+    warn(t("setup.noKey"));
   } else if (!apiKey.startsWith(KEY_PREFIX)) {
-    warn(`키 형식이 ${KEY_PREFIX}… 가 아닙니다. 로컬/상용 키라면 무시하세요.`);
+    warn(t("setup.badKeyFormat", { prefix: KEY_PREFIX }));
   }
 
   saveConfig({ apiKey, baseUrl });
-  ok(`config 저장 → ${c.dim(BARYON_CONFIG)}`);
+  ok(t("setup.configSaved", { file: c.dim(BARYON_CONFIG) }));
 
   // Try live model discovery; fall back to defaults offline.
   let models = null;
   if (apiKey) {
-    info("모델 목록을 조회하는 중…");
+    info(t("setup.discovering"));
     models = await discoverModels(baseUrl, apiKey);
   }
   if (models) {
-    ok(`${models.length}개 모델 발견 (${c.lime(models.map((m) => m.id).slice(0, 4).join(", "))}${models.length > 4 ? "…" : ""})`);
+    ok(t("setup.modelsFound", {
+      count: models.length,
+      list: c.lime(models.map((m) => m.id).slice(0, 4).join(", ")),
+      more: models.length > 4 ? "…" : "",
+    }));
   } else {
     models = DEFAULT_MODELS;
-    warn(`모델 자동 조회 실패 — 기본 모델 ${models.length}개로 구성 (오프라인/폐쇄망 정상)`);
+    warn(t("setup.modelsFailed", { count: models.length }));
   }
 
   saveConfig({ defaultModel: models[0].id });
   const file = syncPiModels({ baseUrl, models });
-  ok(`pi 프로바이더 ${c.lime(PROVIDER)} 구성 → ${c.dim(file)}`);
+  ok(t("setup.providerConfigured", { provider: c.lime(PROVIDER), file: c.dim(file) }));
 
   if (flags["no-extensions"]) {
-    info("기본 확장 설치 건너뜀 (--no-extensions)");
+    info(t("setup.skipExtensions"));
   } else {
     installDefaults();
   }
 
   if (flags["no-skills"]) {
-    info("기본 스킬 설치 건너뜀 (--no-skills)");
+    info(t("setup.skipSkills"));
   } else {
     installSkills();
   }
 
   if (flags["no-browser"]) {
-    info("agent-browser 설치 건너뜀 (--no-browser)");
+    info(t("setup.skipBrowser"));
   } else {
     installBrowser();
   }
 
-  log(`\n  ${sym.ok} 준비 완료. ${c.lime("baryon")} 으로 시작하세요.\n`);
+  log(`\n  ${sym.ok} ${t("setup.done", { cmd: c.lime("baryon") })}\n`);
   return 0;
 }
 
 export async function doctor() {
   banner();
-  log(c.bold("  진단 (baryon doctor)\n"));
+  log(c.bold(`  ${t("doctor.title")}\n`));
   let problems = 0;
 
   // node
   const major = Number(process.versions.node.split(".")[0]);
-  if (major >= 22) ok(`Node.js ${process.version}`);
+  if (major >= 22) ok(t("doctor.node", { version: process.version }));
   else {
-    err(`Node.js ${process.version} — 22 이상 필요`);
+    err(t("doctor.nodeOld", { version: process.version }));
     problems++;
   }
 
   // pi installed?
   const entry = resolvePiEntry();
-  if (entry) ok(`${PI_PACKAGE} 설치됨`);
+  if (entry) ok(t("doctor.piInstalled", { pkg: PI_PACKAGE }));
   else {
-    err(`${PI_PACKAGE} 미설치 — npm install -g @baryonlabs/cli`);
+    err(t("doctor.piMissing", { pkg: PI_PACKAGE }));
     problems++;
   }
 
   // config?
-  if (hasConfig()) ok(`config 존재 → ${c.dim(BARYON_CONFIG)}`);
+  if (hasConfig()) ok(t("doctor.configFound", { file: c.dim(BARYON_CONFIG) }));
   else {
-    warn("config 없음 — `baryon setup` 실행 필요");
+    warn(t("doctor.configMissing"));
     problems++;
   }
 
   const cfg = loadConfig();
-  if (cfg.apiKey) ok(`API 키 설정됨 (${cfg.apiKey.slice(0, 4)}${"•".repeat(6)})`);
-  else warn("API 키 없음");
+  if (cfg.apiKey) ok(t("doctor.apiKeySet", { masked: `${cfg.apiKey.slice(0, 4)}${"•".repeat(6)}` }));
+  else warn(t("doctor.apiKeyMissing"));
 
   // CLI version currency (best-effort; silent offline)
   const ver = await checkLatest();
   if (ver?.outdated) {
-    warn(`CLI 구버전 ${ver.current} — 최신 ${ver.latest}. baryon.ai 사용에 업데이트 필요 (\`baryon update\`)`);
+    warn(t("doctor.cliOutdated", { current: ver.current, latest: ver.latest }));
     problems++;
   } else if (ver) {
-    ok(`CLI 최신 버전 (${ver.current})`);
+    ok(t("doctor.cliCurrent", { current: ver.current }));
   }
 
   // pi provider registered?
-  if (piProviderConfigured()) ok(`pi 프로바이더 ${c.lime(PROVIDER)} 등록됨 → ${c.dim(PI_MODELS_JSON)}`);
+  if (piProviderConfigured()) ok(t("doctor.providerRegistered", { provider: c.lime(PROVIDER), file: c.dim(PI_MODELS_JSON) }));
   else {
-    warn("pi 프로바이더 미등록 — `baryon setup` 실행");
+    warn(t("doctor.providerMissing"));
     problems++;
   }
 
@@ -166,26 +171,26 @@ export async function doctor() {
     fs.existsSync(path.join(PI_SKILLS_DIR, s.name, "SKILL.md")),
   ).length;
   if (haveSkills === DEFAULT_SKILLS.length)
-    ok(`기본 스킬 ${haveSkills}/${DEFAULT_SKILLS.length} 설치됨 (pdf·pptx·xlsx·agent-browser)`);
+    ok(t("doctor.skillsAll", { have: haveSkills, total: DEFAULT_SKILLS.length }));
   else
-    info(`기본 스킬 ${haveSkills}/${DEFAULT_SKILLS.length} — \`baryon skills\` 로 설치`);
+    info(t("doctor.skillsSome", { have: haveSkills, total: DEFAULT_SKILLS.length }));
 
   // agent-browser (web/ERP automation) — informational
   const ab = spawnSync("agent-browser", ["--version"], { encoding: "utf8" });
-  if (ab.status === 0) ok(`agent-browser 설치됨 (${(ab.stdout || "").trim() || "ok"})`);
-  else info("agent-browser 미설치 — `baryon setup`(자동) 또는 `npm i -g agent-browser`");
+  if (ab.status === 0) ok(t("doctor.browserInstalled", { version: (ab.stdout || "").trim() || "ok" }));
+  else info(t("doctor.browserMissing"));
 
   // connectivity
-  info(`연결 확인 중 → ${c.dim(cfg.baseUrl)}`);
+  info(t("doctor.checkingConn", { url: c.dim(cfg.baseUrl) }));
   const r = await ping(cfg.baseUrl, cfg.apiKey);
-  if (r.ok) ok(`baryon.ai 연결 정상 (HTTP ${r.status})`);
-  else if (r.status) warn(`엔드포인트 응답 HTTP ${r.status} — 키/권한 확인`);
-  else warn(`연결 불가 (${r.error}) — 오프라인이면 로컬 LLM 사용 가능`);
+  if (r.ok) ok(t("doctor.connOk", { status: r.status }));
+  else if (r.status) warn(t("doctor.connStatus", { status: r.status }));
+  else warn(t("doctor.connFail", { error: r.error }));
 
   log(
     problems === 0
-      ? `\n  ${sym.ok} ${c.teal("모든 점검 통과")}\n`
-      : `\n  ${sym.warn} ${c.yellow(`${problems}건 확인 필요`)}\n`,
+      ? `\n  ${sym.ok} ${c.teal(t("doctor.allPass"))}\n`
+      : `\n  ${sym.warn} ${c.yellow(t("doctor.problems", { count: problems }))}\n`,
   );
   return problems === 0 ? 0 : 1;
 }
@@ -198,33 +203,35 @@ export async function models(args) {
 
 export async function configCmd(args) {
   const flags = parseFlags(args);
-  if (flags.key || flags["api-key"] || flags["base-url"] || flags.model) {
+  if (flags.key || flags["api-key"] || flags["base-url"] || flags.model || flags.lang) {
     const patch = {};
     if (flags.key || flags["api-key"]) patch.apiKey = flags.key || flags["api-key"];
     if (flags["base-url"]) patch.baseUrl = flags["base-url"];
     if (flags.model) patch.defaultModel = flags.model;
+    if (flags.lang) patch.lang = normalizeLocale(flags.lang);
     saveConfig(patch);
-    ok("config 업데이트됨");
+    ok(t("config.updated"));
     return 0;
   }
   const cfg = loadConfig();
   banner();
-  log(c.bold("  현재 설정\n"));
-  info(`base URL    ${c.lime(cfg.baseUrl)}`);
-  info(`default     ${c.lime(cfg.defaultModel)}`);
-  info(`API key     ${cfg.apiKey ? cfg.apiKey.slice(0, 4) + "•".repeat(6) : c.dim("(없음)")}`);
-  info(`키 관리      ${c.lime(KEYS_URL)}`);
-  info(`config 파일  ${c.dim(BARYON_CONFIG)}`);
-  info(`pi models   ${c.dim(PI_MODELS_JSON)}`);
+  log(c.bold(`  ${t("config.title")}\n`));
+  info(t("config.baseUrl", { url: c.lime(cfg.baseUrl) }));
+  info(t("config.default", { model: c.lime(cfg.defaultModel) }));
+  info(t("config.apiKey", { masked: cfg.apiKey ? c.lime(cfg.apiKey.slice(0, 4) + "•".repeat(6)) : c.dim(t("config.apiKeyNone")) }));
+  info(t("config.lang", { lang: c.lime(getLocale()) }));
+  info(t("config.keysMgmt", { url: c.lime(KEYS_URL) }));
+  info(t("config.file", { file: c.dim(BARYON_CONFIG) }));
+  info(t("config.piModels", { file: c.dim(PI_MODELS_JSON) }));
   log("");
   return 0;
 }
 
 export function keys() {
-  log(`  ${sym.info} 키 발급·관리 (vibecamp.us 대시보드):`);
+  log(`  ${sym.info} ${t("keys.title")}`);
   log(`     ${c.lime(KEYS_URL)}`);
-  log(`  ${c.dim(`   발급/회수/쿼터는 vibecamp.us 가 관리 · 형식 ${KEY_PREFIX}…`)}`);
-  log(`  ${c.dim("   발급 후:")} ${c.lime("baryon setup")} ${c.dim("또는")} ${c.lime("baryon config --key vc_live_…")}`);
+  log(`  ${c.dim(t("keys.sub", { prefix: KEY_PREFIX }))}`);
+  log(`  ${c.dim(t("keys.after"))} ${c.lime("baryon setup")} ${c.dim(t("keys.or"))} ${c.lime("baryon config --key vc_live_…")}`);
   // best-effort open in browser
   const opener =
     process.platform === "darwin"
@@ -247,14 +254,14 @@ export function keys() {
 export function update() {
   return new Promise((resolve) => {
     // 1/2 — CLI + pi core via npm (gets the latest pi binary, e.g. 0.80.x).
-    log(`  ${sym.info} 1/2 CLI·코어 업데이트: ${c.lime(`npm install -g @baryonlabs/cli ${PI_PACKAGE}`)}\n`);
+    log(`  ${sym.info} ${t("update.stage1", { cmd: c.lime(`npm install -g @baryonlabs/cli ${PI_PACKAGE}`) })}\n`);
     const npm = spawn("npm", ["install", "-g", "@baryonlabs/cli", PI_PACKAGE], {
       stdio: "inherit",
       shell: process.platform === "win32",
     });
 
     npm.on("error", () => {
-      err("npm 실행 실패 — 수동으로 위 명령을 실행하세요.");
+      err(t("update.npmFail"));
       resolve(1);
     });
 
@@ -264,11 +271,11 @@ export function update() {
       const entry = resolvePiEntry();
       if (!entry) return resolve(code ?? 0);
 
-      log(`\n  ${sym.info} 2/2 pi 패키지 업데이트: ${c.lime("pi update")}\n`);
+      log(`\n  ${sym.info} ${t("update.stage2", { cmd: c.lime("pi update") })}\n`);
       const pu = spawn(process.execPath, [entry, "update"], { stdio: "inherit" });
       pu.on("error", () => resolve(code ?? 0));
       pu.on("exit", () => {
-        log(`\n  ${sym.ok} 업데이트 완료. ${c.dim("baryon doctor 로 점검 가능")}`);
+        log(`\n  ${sym.ok} ${t("update.done", { hint: c.dim(t("update.doneHint")) })}`);
         resolve(code ?? 0);
       });
     });
@@ -279,7 +286,7 @@ export function installDefaults() {
   const entry = resolvePiEntry();
 
   if (!entry) {
-    warn(`${PI_PACKAGE} 미설치 — 확장 건너뜀`);
+    warn(t("ext.piMissing", { pkg: PI_PACKAGE }));
     return 0;
   }
 
@@ -287,9 +294,9 @@ export function installDefaults() {
   // (e.g. pi-search ↔ pi-web-fetch both registering `web_fetch`, which hard-fails
   // every run). Remove them from pi's registry + disk before (re)installing.
   const pruned = prunePiPackages(DEPRECATED_EXTENSIONS);
-  if (pruned.length) warn(`충돌 확장 제거: ${pruned.join(", ")} (자가 치유)`);
+  if (pruned.length) warn(t("ext.pruned", { names: pruned.join(", ") }));
 
-  log(`  ${sym.info} 기본 확장 설치 중 (${DEFAULT_EXTENSIONS.length}종 · git clone, 잠시 걸립니다)…`);
+  log(`  ${sym.info} ${t("ext.installing", { count: DEFAULT_EXTENSIONS.length })}`);
   let okc = 0;
 
   for (const e of DEFAULT_EXTENSIONS) {
@@ -306,14 +313,14 @@ export function installDefaults() {
     }
 
     if (status === 0) {
-      ok(`${e.name} — ${e.note}`);
+      ok(t("ext.itemOk", { name: e.name, note: e.note }));
       okc++;
     } else {
-      warn(`${e.name} 설치 실패(네트워크/git 확인) — 건너뜀`);
+      warn(t("ext.itemFail", { name: e.name }));
     }
   }
 
-  log(`  ${sym.ok} 확장 ${okc}/${DEFAULT_EXTENSIONS.length} 설치`);
+  log(`  ${sym.ok} ${t("ext.summary", { ok: okc, total: DEFAULT_EXTENSIONS.length })}`);
   return okc;
 }
 
@@ -327,11 +334,11 @@ export function installSkills() {
   let okc = DEFAULT_SKILLS.length - missing.length;
 
   if (missing.length === 0) {
-    log(`  ${sym.ok} 기본 스킬 ${DEFAULT_SKILLS.length}/${DEFAULT_SKILLS.length} (이미 설치됨)`);
+    log(`  ${sym.ok} ${t("skills.alreadyAll", { total: DEFAULT_SKILLS.length })}`);
     return DEFAULT_SKILLS.length;
   }
 
-  log(`  ${sym.info} 기본 스킬 설치 중 (${missing.length}종)…`);
+  log(`  ${sym.info} ${t("skills.installing", { count: missing.length })}`);
   fs.mkdirSync(PI_SKILLS_DIR, { recursive: true });
 
   // Bundled skills ship inside this package under ../skills/<name>/.
@@ -340,12 +347,12 @@ export function installSkills() {
   const copySkill = (srcDir, s) => {
     const dst = path.join(PI_SKILLS_DIR, s.name);
     if (!fs.existsSync(path.join(srcDir, "SKILL.md"))) {
-      warn(`${s.name} — SKILL.md 없음(${srcDir}), 건너뜀`);
+      warn(t("skills.noSkillMd", { name: s.name, dir: srcDir }));
       return false;
     }
     fs.rmSync(dst, { recursive: true, force: true });
     fs.cpSync(srcDir, dst, { recursive: true });
-    ok(`skill: ${s.name} — ${s.note}`);
+    ok(t("skills.itemOk", { name: s.name, note: s.note }));
     return true;
   };
 
@@ -354,7 +361,7 @@ export function installSkills() {
     try {
       if (copySkill(path.join(bundledRoot, s.name), s)) okc++;
     } catch (e) {
-      warn(`${s.name} 스킬 설치 실패 — 건너뜀 (${e.message})`);
+      warn(t("skills.itemFail", { name: s.name, error: e.message }));
     }
   }
 
@@ -376,13 +383,13 @@ export function installSkills() {
       }
 
       if (!cloned) {
-        warn("스킬 저장소 clone 실패(네트워크/git 확인) — 일부 스킬 건너뜀");
+        warn(t("skills.cloneFail"));
       } else {
         for (const s of repoSkills) {
           try {
             if (copySkill(path.join(tmp, ...s.subdir.split("/")), s)) okc++;
           } catch (e) {
-            warn(`${s.name} 스킬 설치 실패 — 건너뜀 (${e.message})`);
+            warn(t("skills.itemFail", { name: s.name, error: e.message }));
           }
         }
       }
@@ -391,7 +398,7 @@ export function installSkills() {
     }
   }
 
-  log(`  ${sym.ok} 기본 스킬 ${okc}/${DEFAULT_SKILLS.length} 설치 → ${PI_SKILLS_DIR}`);
+  log(`  ${sym.ok} ${t("skills.summary", { ok: okc, total: DEFAULT_SKILLS.length, dir: PI_SKILLS_DIR })}`);
   return okc;
 }
 
@@ -403,11 +410,11 @@ export function installBrowser() {
   // Already present?
   const probe = spawnSync("agent-browser", ["--version"], { encoding: "utf8" });
   if (probe.status === 0) {
-    ok(`agent-browser 설치됨 (${(probe.stdout || "").trim() || "ok"})`);
+    ok(t("browser.installed", { version: (probe.stdout || "").trim() || "ok" }));
     return true;
   }
 
-  log(`  ${sym.info} agent-browser 설치 중 (웹/ERP 자동화 · 최초 1회, 브라우저 다운로드 포함)…`);
+  log(`  ${sym.info} ${t("browser.installing")}`);
 
   let ok1 = false;
   for (let attempt = 1; attempt <= 2 && !ok1; attempt++) {
@@ -417,14 +424,14 @@ export function installBrowser() {
   }
 
   if (!ok1) {
-    warn("agent-browser 설치 실패(네트워크/npm 확인) — 건너뜀. 나중에 `npm i -g agent-browser && agent-browser install`");
+    warn(t("browser.installFail"));
     return false;
   }
 
   // Download the browser engine (Chrome for Testing). Best-effort.
   const inst = spawnSync("agent-browser", ["install"], { encoding: "utf8", stdio: "ignore" });
-  if (inst.status === 0) ok("agent-browser — 웹/ERP 브라우저 자동화 준비됨");
-  else warn("agent-browser 바이너리는 설치됨 · 브라우저 다운로드 미완 — 최초 사용 시 `agent-browser install`");
+  if (inst.status === 0) ok(t("browser.ready"));
+  else warn(t("browser.engineMissing"));
 
   return true;
 }
@@ -437,9 +444,9 @@ export function extensions(args) {
   }
 
   banner();
-  log(c.bold("  Baryon 기본 확장\n"));
+  log(c.bold(`  ${t("ext.bannerTitle")}\n`));
   installDefaults()
-  log(`\n  ${sym.info} 목록: ${c.lime("baryon extensions list")} · 제거: ${c.lime("baryon -- remove <src>")}\n`)
+  log(`\n  ${sym.info} ${t("ext.footer", { list: c.lime("baryon extensions list"), remove: c.lime("baryon -- remove <src>") })}\n`)
   return 0;
 }
 
@@ -449,45 +456,46 @@ export function skills(args) {
   banner();
 
   if (sub === "list" || sub === "ls") {
-    log(c.bold("  Baryon 기본 스킬 팩\n"));
+    log(c.bold(`  ${t("skills.bannerListTitle")}\n`));
     for (const s of DEFAULT_SKILLS) {
       const here = fs.existsSync(path.join(PI_SKILLS_DIR, s.name, "SKILL.md"));
-      log(`  ${here ? sym.ok : sym.info} ${c.lime(s.name)} — ${s.note} ${here ? "" : c.dim("(미설치)")}`);
+      log(`  ${here ? sym.ok : sym.info} ${c.lime(s.name)} — ${s.note} ${here ? "" : c.dim(t("skills.notInstalled"))}`);
     }
-    log(`\n  ${sym.info} 설치/동기화: ${c.lime("baryon skills")} · 위치: ${c.dim(PI_SKILLS_DIR)}\n`);
+    log(`\n  ${sym.info} ${t("skills.listFooter", { cmd: c.lime("baryon skills"), dir: c.dim(PI_SKILLS_DIR) })}\n`);
     return 0;
   }
 
-  log(c.bold("  Baryon 기본 스킬 설치\n"));
+  log(c.bold(`  ${t("skills.bannerInstallTitle")}\n`));
   installSkills();
-  log(`\n  ${sym.info} 사용: pi 에이전트에서 ${c.lime("/skill pdf")} 처럼 호출 · 목록: ${c.lime("baryon skills list")}\n`);
+  log(`\n  ${sym.info} ${t("skills.installFooter", { call: c.lime("/skill pdf"), list: c.lime("baryon skills list") })}\n`);
   return 0;
 }
 
 export function help() {
   banner();
   log(`${c.bold("USAGE")}
-  ${c.lime("baryon")} ${c.dim("[options] [@files...] [messages...]")}     코딩 에이전트 시작 (baryon.ai 기본)
+  ${c.lime("baryon")} ${c.dim("[options] [@files...] [messages...]")}     ${t("help.usageDesc")}
 
 ${c.bold("COMMANDS")}
-  ${c.lime("baryon setup")}            baryon.ai API 키 등록 + pi 프로바이더 구성
-  ${c.lime("baryon keys")}             키 발급·관리 대시보드 열기 ${c.dim("(vibecamp.us)")}
-  ${c.lime("baryon config")}           현재 설정 보기 ${c.dim("(--key/--base-url/--model 로 변경)")}
-  ${c.lime("baryon models")}           사용 가능한 모델 목록
-  ${c.lime("baryon extensions")}       기본 확장 설치(서브에이전트·캔버스·셸·웹) ${c.dim("· list 로 목록")}
-  ${c.lime("baryon skills")}           기본 스킬 설치(pdf·pptx·xlsx) ${c.dim("· list 로 목록")}
-  ${c.lime("baryon doctor")}           설치·연결 진단
-  ${c.lime("baryon update")}           CLI + pi 에이전트 업데이트
-  ${c.lime("baryon help")}             이 도움말
+  ${c.lime("baryon setup")}            ${t("help.cmd.setup")}
+  ${c.lime("baryon keys")}             ${t("help.cmd.keys")} ${c.dim(t("help.cmd.keysNote"))}
+  ${c.lime("baryon config")}           ${t("help.cmd.config")} ${c.dim(t("help.cmd.configNote"))}
+  ${c.lime("baryon models")}           ${t("help.cmd.models")}
+  ${c.lime("baryon extensions")}       ${t("help.cmd.extensions")} ${c.dim(t("help.cmd.extensionsNote"))}
+  ${c.lime("baryon skills")}           ${t("help.cmd.skills")} ${c.dim(t("help.cmd.skillsNote"))}
+  ${c.lime("baryon doctor")}           ${t("help.cmd.doctor")}
+  ${c.lime("baryon update")}           ${t("help.cmd.update")}
+  ${c.lime("baryon help")}             ${t("help.cmd.help")}
 
 ${c.bold("EXAMPLES")}
-  ${c.dim("$")} baryon                              ${c.dim("# 대화형 시작")}
-  ${c.dim("$")} baryon -p "CSV 분석해 차트 만들어줘"   ${c.dim("# 단발 실행")}
-  ${c.dim("$")} baryon --provider openai            ${c.dim("# 다른 모델로 전환·비교")}
-  ${c.dim("$")} baryon --list-models                ${c.dim("# pi 패스스루")}
+  ${c.dim("$")} baryon                              ${c.dim(t("help.ex.interactive"))}
+  ${c.dim("$")} baryon -p "${t("help.ex.oneShotMsg")}"   ${c.dim(t("help.ex.oneShot"))}
+  ${c.dim("$")} baryon --provider openai            ${c.dim(t("help.ex.switch"))}
+  ${c.dim("$")} baryon --list-models                ${c.dim(t("help.ex.passthrough"))}
 
-${c.dim(`그 외 모든 옵션은 pi 에이전트로 그대로 전달됩니다.`)}
-${c.dim(`문서: ${HOMEPAGE} · 문의: ${SUPPORT_EMAIL}`)}
+${c.dim(t("help.lang", { env: "BARYON_LANG", cmd: "baryon config --lang" }))}
+${c.dim(t("help.passthrough"))}
+${c.dim(t("help.docs", { homepage: HOMEPAGE, email: SUPPORT_EMAIL }))}
 `);
   return 0;
 }
@@ -495,8 +503,8 @@ ${c.dim(`문서: ${HOMEPAGE} · 문의: ${SUPPORT_EMAIL}`)}
 /** Quiet first-run hint shown by postinstall (never fails the install). */
 export function welcome() {
   if (!process.stdout.isTTY) return 0;
-  log(`\n${c.lime("✔")} ${c.bold("@baryonlabs/cli")} 설치 완료`);
-  log(`  ${c.dim("다음 단계:")} ${c.lime("baryon setup")} ${c.dim("→")} ${c.lime("baryon")}`);
+  log(`\n${c.lime("✔")} ${t("welcome.installed", { pkg: c.bold("@baryonlabs/cli") })}`);
+  log(`  ${c.dim(t("welcome.nextLabel"))} ${c.lime("baryon setup")} ${c.dim("→")} ${c.lime("baryon")}`);
   log(`  ${c.dim(HOMEPAGE)}\n`);
   return 0;
 }

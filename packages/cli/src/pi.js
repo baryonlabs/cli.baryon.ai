@@ -16,6 +16,7 @@ import {
   CLIENT_VERSION,
 } from "./constants.js";
 import { ensurePiSessionHeader } from "./config.js";
+import { t } from "./i18n.js";
 
 const require = createRequire(import.meta.url);
 
@@ -84,11 +85,7 @@ function userOverridesTargeting(args) {
 export function runPi(args, config, { injectTargeting = true } = {}) {
   const entry = resolvePiEntry();
   if (!entry) {
-    return Promise.reject(
-      new Error(
-        `${PI_PACKAGE} is not installed. Run: npm install -g @baryonlabs/cli`,
-      ),
-    );
+    return Promise.reject(new Error(t("pi.notInstalled", { pkg: PI_PACKAGE })));
   }
 
   const finalArgs = [...args];

@@ -99,4 +99,29 @@ export async function ping(baseUrl, apiKey, { timeoutMs = 6000 } = {}) {
   }
 }
 
+/**
+ * Resolve the connected project (분반) + seat for the configured key, so the CLI
+ * can show which "room" it's in. Best-effort: null on any failure / offline.
+ */
+export async function whoami(baseUrl, apiKey, { timeoutMs = 4000 } = {}) {
+  if (!apiKey) return null;
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+  try {
+    const res = await fetch(joinUrl(baseUrl, "/whoami"), {
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "X-Baryon-Client": `baryon-cli/${CLIENT_VERSION}`,
+      },
+      signal: ctrl.signal,
+    });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 export { DEFAULT_MODELS };
