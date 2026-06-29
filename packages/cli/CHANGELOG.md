@@ -1,5 +1,12 @@
 # Changelog — @baryonlabs/cli
 
+## [0.3.9] — 2026-06-29
+
+### Changed
+- `baryon edge` install hint now points at the private enterprise repo
+  (`github:baryonlabs/baryon-edge`) — the Edge source moved out of this public
+  monorepo into a dedicated private repo (npm package stays unpublished/enterprise).
+
 ## [0.3.8] — 2026-06-29
 
 ### Added

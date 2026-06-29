@@ -260,7 +260,7 @@ export function edge(args) {
     });
     child.on("error", () => {
       log(`  ${sym.warn} ${t("edge.notInstalled")}`);
-      log(`     ${c.lime("npm i -g @baryonlabs/edge")}`);
+      log(`     ${c.lime("npm i -g github:baryonlabs/baryon-edge")}`);
       resolve(1);
     });
     child.on("exit", (code) => resolve(code ?? 0));
