@@ -246,16 +246,31 @@ export function keys() {
 
 export function update() {
   return new Promise((resolve) => {
-    log(`  ${sym.info} 업데이트: ${c.lime(`npm install -g @baryonlabs/cli ${PI_PACKAGE}`)}\n`);
-    const child = spawn(
-      "npm",
-      ["install", "-g", "@baryonlabs/cli", PI_PACKAGE],
-      { stdio: "inherit", shell: process.platform === "win32" },
-    );
-    child.on("exit", (code) => resolve(code ?? 0));
-    child.on("error", () => {
+    // 1/2 — CLI + pi core via npm (gets the latest pi binary, e.g. 0.80.x).
+    log(`  ${sym.info} 1/2 CLI·코어 업데이트: ${c.lime(`npm install -g @baryonlabs/cli ${PI_PACKAGE}`)}\n`);
+    const npm = spawn("npm", ["install", "-g", "@baryonlabs/cli", PI_PACKAGE], {
+      stdio: "inherit",
+      shell: process.platform === "win32",
+    });
+
+    npm.on("error", () => {
       err("npm 실행 실패 — 수동으로 위 명령을 실행하세요.");
       resolve(1);
+    });
+
+    npm.on("exit", (code) => {
+      // 2/2 — pi's own packages (pi-mcp-adapter, pi-dynamic-workflows, …) are
+      // managed by `pi update`, not npm. Run it so those notices clear too.
+      const entry = resolvePiEntry();
+      if (!entry) return resolve(code ?? 0);
+
+      log(`\n  ${sym.info} 2/2 pi 패키지 업데이트: ${c.lime("pi update")}\n`);
+      const pu = spawn(process.execPath, [entry, "update"], { stdio: "inherit" });
+      pu.on("error", () => resolve(code ?? 0));
+      pu.on("exit", () => {
+        log(`\n  ${sym.ok} 업데이트 완료. ${c.dim("baryon doctor 로 점검 가능")}`);
+        resolve(code ?? 0);
+      });
     });
   });
 }
