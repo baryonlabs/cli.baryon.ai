@@ -1,5 +1,14 @@
 # Changelog — @baryonlabs/cli
 
+## [0.4.0] — 2026-06-29
+
+### Added
+- **`pi-dynamic-workflows` as a default extension** — registers a `workflow` tool
+  (Claude-Code-style dynamic workflows: the model writes a small JS script that
+  fans work out across isolated subagents, then synthesizes). Installed from npm
+  (`pi install npm:pi-dynamic-workflows`). Verified to load conflict-free on pi 0.80.
+  Great for codebase audits, multi-perspective review, large refactors, fan-out research.
+
 ## [0.3.9] — 2026-06-29
 
 ### Changed

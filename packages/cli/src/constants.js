@@ -92,7 +92,11 @@ export const DEFAULT_MODELS = [
  */
 export const DEFAULT_EXTENSIONS = [
   { name: "pi-canvas", src: "https://github.com/jyaunches/pi-canvas", note: "캔버스" },
-  { name: "pi-interactive-shell", src: "https://github.com/nicobailon/pi-interactive-shell", note: "인터랙티브 셸" }
+  { name: "pi-interactive-shell", src: "https://github.com/nicobailon/pi-interactive-shell", note: "인터랙티브 셸" },
+  // Claude-Code-style dynamic workflows: registers a `workflow` tool that fans
+  // work out across isolated subagents, then synthesizes. Installed from npm
+  // (a pi-package) rather than a git clone. https://github.com/michaelliv/pi-dynamic-workflows
+  { name: "pi-dynamic-workflows", src: "npm:pi-dynamic-workflows", note: "다이내믹 워크플로(서브에이전트 팬아웃)" }
 ];
 
 /**
