@@ -34,7 +34,7 @@ curl -fsSL https://cli.baryon.ai/install.sh | sh
 | `baryon setup` | API 키 등록 + pi 프로바이더 구성 |
 | `baryon config` | 현재 설정 보기 (`--key`, `--base-url`, `--model` 로 변경) |
 | `baryon models` | 사용 가능한 모델 목록 (`pi --list-models` 패스스루) |
-| `baryon extensions` | 기본 확장 설치(서브에이전트·캔버스·셸·웹), `list` 로 목록 |
+| `baryon extensions` | 기본 확장 설치(캔버스·셸·에이전트 하네스·수식 표시·워크플로), `list` 로 목록 |
 | `baryon doctor` | 설치·연결 진단 |
 | `baryon update` | CLI + pi 에이전트 업데이트 |
 | `baryon help` | 도움말 |
@@ -51,13 +51,11 @@ baryon --provider openai                       # 다른 모델로 전환·비교
 
 `baryon setup` 시 아래 pi 확장이 자동 설치되어 바로 쓸 수 있습니다(`--no-extensions` 로 건너뛰기, `baryon extensions` 로 재설치):
 
-- **서브에이전트** — 작업 분해·위임·통합 ([pi-subagents](https://github.com/nicobailon/pi-subagents))
 - **캔버스** ([pi-canvas](https://github.com/jyaunches/pi-canvas))
 - **인터랙티브 셸** ([pi-interactive-shell](https://github.com/nicobailon/pi-interactive-shell))
-- **웹 액세스** ([pi-web-access](https://github.com/nicobailon/pi-web-access))
-- **웹 페치** ([pi-web-fetch](https://github.com/georgebashi/pi-web-fetch))
-- **웹 검색** ([pi-search](https://github.com/buddingnewinsights/pi-search))
-- **병렬 웹 검색** ([pi-parallel-web-search](https://github.com/philipp-spiess/pi-parallel-web-search))
+- **에이전트 하네스** — 도메인별 에이전트 팀·스킬·프롬프트 설계 ([pi-agent-harness](https://github.com/baryonlabs/pi-agent-harness))
+- **터미널 수식 표시** — LaTeX 스타일 수식을 Unicode 수식 표기로 변환 ([pi-terminal-math](https://github.com/baryonlabs/pi-terminal-math))
+- **다이내믹 워크플로** — 서브에이전트 팬아웃·통합 ([pi-dynamic-workflows](https://github.com/michaelliv/pi-dynamic-workflows))
 
 ## 설정
 

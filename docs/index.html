@@ -380,23 +380,23 @@ baryon config --model baryon-coder">복사</button></div>
     <!-- EXTENSIONS -->
     <section id="extensions">
       <h2><span class="hash">#</span>기본 탑재 확장</h2>
-      <p class="sub"><code>baryon setup</code> 시 아래 확장이 자동 설치되어 바로 동작합니다. 학생이 현대 AI 에이전트의 핵심 능력 — <b>서브에이전트 · 캔버스 · 셸 · 웹</b> — 을 손으로 다루며 배웁니다. (<code>baryon extensions</code> 재설치 · <code>--no-extensions</code> 생략)</p>
+      <p class="sub"><code>baryon setup</code> 시 아래 확장이 자동 설치되어 바로 동작합니다. 학생이 현대 AI 에이전트의 핵심 능력 — <b>캔버스 · 셸 · 에이전트 하네스 · 수식 표시 · 워크플로</b> — 을 손으로 다루며 배웁니다. (<code>baryon extensions</code> 재설치 · <code>--no-extensions</code> 생략)</p>
       <div class="concepts">
-        <div class="concept"><div class="sym">⋔</div><h4>서브에이전트</h4><p>하나의 작업을 여러 하위 에이전트로 분해·위임·통합. 복잡한 문제를 ‘나눠 푸는’ 사고.</p><a class="pill" href="https://github.com/nicobailon/pi-subagents" target="_blank" rel="noopener">pi-subagents ↗</a></div>
         <div class="concept"><div class="sym">▦</div><h4>캔버스</h4><p>결과·아티팩트를 캔버스에 펼쳐 시각적으로 구성·편집.</p><a class="pill" href="https://github.com/jyaunches/pi-canvas" target="_blank" rel="noopener">pi-canvas ↗</a></div>
         <div class="concept"><div class="sym">▮</div><h4>인터랙티브 셸</h4><p>대화형 셸 세션을 열어 명령을 단계적으로 실행·관찰.</p><a class="pill" href="https://github.com/nicobailon/pi-interactive-shell" target="_blank" rel="noopener">pi-interactive-shell ↗</a></div>
-        <div class="concept"><div class="sym">◍</div><h4>웹 액세스</h4><p>웹을 탐색하고 URL 콘텐츠를 가져오며(fetch) 검색까지 — 하나의 확장으로 브라우징·페치·검색을 제공.</p><a class="pill" href="https://github.com/nicobailon/pi-web-access" target="_blank" rel="noopener">pi-web-access ↗</a></div>
-        <div class="concept"><div class="sym">⇶</div><h4>병렬 웹 검색</h4><p>여러 검색을 동시에 던져 결과를 모아 비교·종합.</p><a class="pill" href="https://github.com/philipp-spiess/pi-parallel-web-search" target="_blank" rel="noopener">pi-parallel-web-search ↗</a></div>
+        <div class="concept"><div class="sym">⋔</div><h4>에이전트 하네스</h4><p>도메인 설명을 에이전트 팀, 스킬, 오케스트레이션 프롬프트로 변환해 복잡한 작업 구조를 설계.</p><a class="pill" href="https://github.com/baryonlabs/pi-agent-harness" target="_blank" rel="noopener">pi-agent-harness ↗</a></div>
+        <div class="concept"><div class="sym">∑</div><h4>터미널 수식 표시</h4><p>응답 속 LaTeX 스타일 수식을 터미널 친화 Unicode 수식 표기로 변환해 손실 함수와 기호를 읽기 쉽게 표시.</p><a class="pill" href="https://github.com/baryonlabs/pi-terminal-math" target="_blank" rel="noopener">pi-terminal-math ↗</a></div>
+        <div class="concept"><div class="sym">⇶</div><h4>다이내믹 워크플로</h4><p>작업을 여러 하위 실행으로 팬아웃하고 결과를 통합해 큰 분석·리팩터링·조사를 병렬화.</p><a class="pill" href="https://github.com/michaelliv/pi-dynamic-workflows" target="_blank" rel="noopener">pi-dynamic-workflows ↗</a></div>
       </div>
 
-      <h3>실제 사례 — 서브에이전트로 한 문제를 4가지로</h3>
-      <p>“피보나치를 풀어줘”라는 한 요청을 <b>4개의 서브에이전트</b>가 각자 다른 알고리즘으로 병렬 해결하고 결과를 통합합니다.</p>
+      <h3>실제 사례 — 워크플로로 한 문제를 4가지로</h3>
+      <p>“피보나치를 풀어줘”라는 한 요청을 여러 하위 실행으로 나누어 각자 다른 알고리즘으로 병렬 해결하고 결과를 통합합니다.</p>
       <figure style="margin:14px 0">
         <img src="/assets/subagents-fibonacci.png" alt="4개의 서브에이전트가 피보나치를 각자 방식으로 풀고 벤치마크한 실제 실행 화면" loading="lazy" style="width:100%;border:1px solid var(--line);border-radius:12px;display:block" />
-        <figcaption class="mono" style="font-size:11px;color:var(--ink-dim);margin-top:6px">실제 실행 화면 · baryon CLI + pi-subagents</figcaption>
+        <figcaption class="mono" style="font-size:11px;color:var(--ink-dim);margin-top:6px">실제 실행 화면 · baryon CLI + 다이내믹 워크플로</figcaption>
       </figure>
       <div class="card">
-        <p style="color:var(--ink);margin-top:0"><b>🎉 총 4개의 서브에이전트가 각자의 방식으로 피보나치를 풀었습니다!</b></p>
+        <p style="color:var(--ink);margin-top:0"><b>총 4개의 하위 실행이 각자의 방식으로 피보나치를 풀었습니다.</b></p>
         <table class="tbl">
           <thead><tr><th>서브에이전트</th><th>알고리즘</th><th class="right-num">시간복잡도</th><th>특징</th></tr></thead>
           <tbody>
@@ -414,10 +414,10 @@ baryon config --model baryon-coder">복사</button></div>
 <span class="c-cm">반복문 (N=200)       →</span>     3.27ms  ✅ 안정적
 <span class="c-cm">행렬 (N=200)         →</span>     4.24ms  ✅ 대용량에 강함</code></pre>
       </div>
-      <div class="note lime"><span class="lbl">결론</span>일반적으로는 <b>메모이제이션(DP)</b>, 매우 큰 수(n &gt; 10만)는 <b>행렬 거듭제곱</b>이 유리 — 한 문제를 여러 관점으로 동시에 탐구하는 것이 서브에이전트 학습의 핵심입니다.</div>
+      <div class="note lime"><span class="lbl">결론</span>일반적으로는 <b>메모이제이션(DP)</b>, 매우 큰 수(n &gt; 10만)는 <b>행렬 거듭제곱</b>이 유리 — 한 문제를 여러 관점으로 동시에 탐구하는 것이 워크플로 학습의 핵심입니다.</div>
 
-      <h3>사례 — 웹 검색·페치로 ‘근거 있는’ 보고서</h3>
-      <p><code>pi-web-access</code> · <code>pi-parallel-web-search</code> 로 위키피디아 등에서 사실을 검증하고, 그 결과를 HTML 보고서로 생성합니다 — ‘웹에서 찾아 근거를 붙이는’ 워크플로.</p>
+      <h3>사례 — 내장 웹 검색·페치로 ‘근거 있는’ 보고서</h3>
+      <p>pi 내장 웹 검색·페치 도구로 위키피디아 등에서 사실을 검증하고, 그 결과를 HTML 보고서로 생성합니다 — ‘웹에서 찾아 근거를 붙이는’ 워크플로.</p>
       <figure style="margin:14px 0">
         <img src="/assets/websearrch-report.png" alt="웹 검색으로 사실을 검증한 뒤 보고서를 생성한 실제 실행 화면" loading="lazy" style="width:100%;border:1px solid var(--line);border-radius:12px;display:block" />
         <figcaption class="mono" style="font-size:11px;color:var(--ink-dim);margin-top:6px">실제 실행 화면 · web_search + web_fetch → fibonacci_report.html</figcaption>

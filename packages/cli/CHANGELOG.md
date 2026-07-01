@@ -1,5 +1,13 @@
 # Changelog — @baryonlabs/cli
 
+## Unreleased
+
+### Added
+- **`pi-agent-harness` as a default extension** — installs Baryon's public
+  harness fork for designing domain-specific agent teams, skills and prompts.
+- **`pi-terminal-math` as a default extension** — converts common LaTeX math in
+  assistant Markdown into terminal-friendly Unicode notation.
+
 ## [0.4.0] — 2026-06-29
 
 ### Added
